@@ -1,38 +1,44 @@
 body {
   margin: 0;
   background-color: #ffffff;
-  color: #222;
+  color: #333;
   font-family: 'Poppins', sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .container {
   text-align: center;
+  background: #fffef9;
+  border: 1px solid #f4e9c3;
+  border-radius: 16px;
+  padding: 25px 30px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
 h1 {
+  color: #f6b100;
   font-size: 2rem;
-  color: #f7b500;
   margin-bottom: 5px;
 }
 
 .subtitle {
   color: #555;
-  margin-bottom: 15px;
-}
-
-.controls {
+  font-size: 0.95rem;
   margin-bottom: 20px;
 }
 
+.controls {
+  margin-bottom: 15px;
+}
+
 button {
-  background-color: #fff8e1;
+  background-color: #fff9e6;
   color: #333;
-  border: 1px solid #f7b500;
-  border-radius: 6px;
+  border: 1px solid #f6b100;
+  border-radius: 8px;
   padding: 8px 18px;
   font-size: 1rem;
   cursor: pointer;
@@ -41,19 +47,18 @@ button {
 }
 
 button:hover {
-  background-color: #f7b500;
+  background-color: #f6b100;
   color: white;
 }
 
 button.active {
-  background-color: #f7b500;
+  background-color: #f6b100;
   color: white;
 }
 
 canvas {
   display: block;
   margin: 0 auto;
-  border: 1px solid #ddd;
   border-radius: 10px;
 }
 
@@ -61,6 +66,7 @@ canvas {
   width: 500px;
   height: 300px;
   background: #fff;
+  border: 1px solid #f4e9c3;
 }
 
 .lightcurve {
@@ -70,13 +76,24 @@ canvas {
 #curveCanvas {
   width: 500px;
   height: 150px;
-  background: #f9f9f9;
-  border: 1px solid #ddd;
+  background: #fffef9;
+  border: 1px solid #f4e9c3;
   border-radius: 10px;
 }
 
 .status {
   margin-top: 15px;
   font-size: 0.9rem;
-  color: #555;
+  color: #666;
+}
+
+.infoBox {
+  background: #fffbea;
+  border: 1px solid #f6b100;
+  border-radius: 10px;
+  padding: 10px;
+  width: 450px;
+  margin: 15px auto;
+  color: #444;
+  font-size: 0.9rem;
 }
