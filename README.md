@@ -72,3 +72,59 @@ All logic is implemented using plain JavaScript — **no external libraries or f
 
 ## 🗂️ Project Structure
 
+---
+
+## 🚀 Live Demo
+
+👉 **[Click here to view the simulation](https://your-username.github.io/eclipse-simulation/)**  
+*(Replace `your-username` with your actual GitHub username before deploying.)*
+
+---
+
+## 🎯 Learning Outcomes
+
+By exploring or building upon this simulation, you will:
+- Understand the geometry behind eclipses (umbra, penumbra, angular sizes).  
+- Learn how to model physical phenomena using mathematics and programming.  
+- Gain experience in UI/UX design for scientific visualization.  
+- Strengthen your portfolio with a practical, visually appealing project.  
+
+---
+
+## 🧠 Author
+
+**Dhruv**  
+Engineering & MBA Tech Student @ NMIMS MPSTME  
+Focused on **Data Science, Artificial Intelligence, and Technology Management**.  
+Aspiring **Tech Entrepreneur and Consultant**, passionate about computational simulations and elegant UI design.
+
+> “Coding the cosmos one equation at a time.”
+
+---
+
+## 🔮 Future Enhancements
+
+- 3D eclipse visualization using Three.js  
+- Real astronomical data via NASA / JPL ephemeris  
+- Predictive eclipse timing model  
+- Enhanced shading & atmospheric scattering for realism  
+- Exportable simulation results (CSV / PNG)
+
+---
+
+## 🪪 License
+
+This project is licensed under the **MIT License**.  
+Free to use, modify, and share for educational and personal purposes.
+
+---
+
+## 💡 Acknowledgements
+
+- NASA Eclipse Data Resources  
+- Open-source astronomy simulation references  
+- Inspiration from interactive celestial geometry models
+
+---
+
+
