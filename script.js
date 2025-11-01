@@ -11,6 +11,7 @@ curveCanvas.height = 150;
 const solarBtn = document.getElementById("solarBtn");
 const lunarBtn = document.getElementById("lunarBtn");
 const statusText = document.getElementById("statusText");
+const infoBox = document.getElementById("infoBox");
 
 let mode = "solar";
 let t = 0;
@@ -19,16 +20,18 @@ solarBtn.onclick = () => {
   mode = "solar";
   solarBtn.classList.add("active");
   lunarBtn.classList.remove("active");
-  t = 0;
+  infoBox.innerHTML = "<p>In a <b>Solar Eclipse</b>, the Moon passes between the Sun and Earth, blocking sunlight partially or fully.</p>";
   statusText.textContent = "Simulating Solar Eclipse...";
+  t = 0;
 };
 
 lunarBtn.onclick = () => {
   mode = "lunar";
   lunarBtn.classList.add("active");
   solarBtn.classList.remove("active");
-  t = 0;
+  infoBox.innerHTML = "<p>In a <b>Lunar Eclipse</b>, the Earth moves between the Sun and Moon, casting a shadow on the Moon.</p>";
   statusText.textContent = "Simulating Lunar Eclipse...";
+  t = 0;
 };
 
 function circleOverlap(r1, r2, d) {
@@ -41,9 +44,9 @@ function circleOverlap(r1, r2, d) {
 }
 
 function drawLightCurve(frac) {
-  cctx.fillStyle = "#f9f9f9";
+  cctx.fillStyle = "#fffef9";
   cctx.fillRect(0, 0, curveCanvas.width, curveCanvas.height);
-  cctx.fillStyle = "#f7b500";
+  cctx.fillStyle = "#f6b100";
   cctx.fillRect(t % curveCanvas.width, (1 - frac) * curveCanvas.height, 3, 3);
 }
 
@@ -58,12 +61,12 @@ function solarEclipse() {
   const xMoon = 250 + d - 100;
   const yMoon = 150;
 
-  ctx.fillStyle = "#f7b500";
+  ctx.fillStyle = "#f6b100";
   ctx.beginPath();
   ctx.arc(xSun, ySun, rSun, 0, 2 * Math.PI);
   ctx.fill();
 
-  ctx.fillStyle = "#333";
+  ctx.fillStyle = "#555";
   ctx.beginPath();
   ctx.arc(xMoon, yMoon, rMoon, 0, 2 * Math.PI);
   ctx.fill();
@@ -84,12 +87,12 @@ function lunarEclipse() {
   const xMoon = 250 + d - 250;
   const yMoon = 150;
 
-  ctx.fillStyle = "#ccc";
+  ctx.fillStyle = "#ddd";
   ctx.beginPath();
   ctx.arc(xShadow, yShadow, rShadow, 0, 2 * Math.PI);
   ctx.fill();
 
-  ctx.fillStyle = "#f2f2f2";
+  ctx.fillStyle = "#fff8e1";
   ctx.beginPath();
   ctx.arc(xMoon, yMoon, rMoon, 0, 2 * Math.PI);
   ctx.fill();
