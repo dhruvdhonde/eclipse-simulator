@@ -10,6 +10,7 @@ curveCanvas.height = 150;
 
 const solarBtn = document.getElementById("solarBtn");
 const lunarBtn = document.getElementById("lunarBtn");
+const statusText = document.getElementById("statusText");
 
 let mode = "solar";
 let t = 0;
@@ -19,6 +20,7 @@ solarBtn.onclick = () => {
   solarBtn.classList.add("active");
   lunarBtn.classList.remove("active");
   t = 0;
+  statusText.textContent = "Simulating Solar Eclipse...";
 };
 
 lunarBtn.onclick = () => {
@@ -26,6 +28,7 @@ lunarBtn.onclick = () => {
   lunarBtn.classList.add("active");
   solarBtn.classList.remove("active");
   t = 0;
+  statusText.textContent = "Simulating Lunar Eclipse...";
 };
 
 function circleOverlap(r1, r2, d) {
@@ -38,10 +41,10 @@ function circleOverlap(r1, r2, d) {
 }
 
 function drawLightCurve(frac) {
-  cctx.fillStyle = "#1f2833";
+  cctx.fillStyle = "#f9f9f9";
   cctx.fillRect(0, 0, curveCanvas.width, curveCanvas.height);
-  cctx.fillStyle = "#66fcf1";
-  cctx.fillRect(t % curveCanvas.width, (1 - frac) * curveCanvas.height, 2, 2);
+  cctx.fillStyle = "#f7b500";
+  cctx.fillRect(t % curveCanvas.width, (1 - frac) * curveCanvas.height, 3, 3);
 }
 
 function solarEclipse() {
@@ -55,12 +58,12 @@ function solarEclipse() {
   const xMoon = 250 + d - 100;
   const yMoon = 150;
 
-  ctx.fillStyle = "yellow";
+  ctx.fillStyle = "#f7b500";
   ctx.beginPath();
   ctx.arc(xSun, ySun, rSun, 0, 2 * Math.PI);
   ctx.fill();
 
-  ctx.fillStyle = "#000";
+  ctx.fillStyle = "#333";
   ctx.beginPath();
   ctx.arc(xMoon, yMoon, rMoon, 0, 2 * Math.PI);
   ctx.fill();
@@ -72,7 +75,7 @@ function solarEclipse() {
 
 function lunarEclipse() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const rEarthShadow = 100;
+  const rShadow = 100;
   const rMoon = 30;
   const d = 250 * Math.sin(t / 120) + 250;
 
@@ -81,22 +84,17 @@ function lunarEclipse() {
   const xMoon = 250 + d - 250;
   const yMoon = 150;
 
-  const grad = ctx.createRadialGradient(xShadow, yShadow, 0, xShadow, yShadow, rEarthShadow);
-  grad.addColorStop(0, "rgba(0,0,0,0.9)");
-  grad.addColorStop(0.7, "rgba(255,0,0,0.3)");
-  grad.addColorStop(1, "rgba(255,255,255,0.1)");
-
-  ctx.fillStyle = grad;
+  ctx.fillStyle = "#ccc";
   ctx.beginPath();
-  ctx.arc(xShadow, yShadow, rEarthShadow, 0, 2 * Math.PI);
+  ctx.arc(xShadow, yShadow, rShadow, 0, 2 * Math.PI);
   ctx.fill();
 
-  ctx.fillStyle = "#cfcfcf";
+  ctx.fillStyle = "#f2f2f2";
   ctx.beginPath();
   ctx.arc(xMoon, yMoon, rMoon, 0, 2 * Math.PI);
   ctx.fill();
 
-  const overlap = circleOverlap(rEarthShadow, rMoon, Math.abs(xShadow - xMoon));
+  const overlap = circleOverlap(rShadow, rMoon, Math.abs(xShadow - xMoon));
   const frac = 1 - overlap / (Math.PI * rMoon ** 2);
   drawLightCurve(frac);
 }
