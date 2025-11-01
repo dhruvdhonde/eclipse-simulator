@@ -1,20 +1,81 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Solar Eclipse Simulator</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Eclipse Simulator — Solar & Lunar (Detailed)</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
-  <h1>Solar Eclipse Simulation</h1>
-  <canvas id="eclipseCanvas"></canvas>
-  <div class="controls">
-    <button id="startBtn">▶ Start</button>
-    <button id="pauseBtn">⏸ Pause</button>
+  <div id="app">
+    <header>
+      <h1>Eclipse Simulator — Solar & Lunar</h1>
+      <div class="subtitle">Geometry-first, angular sizes, umbra/penumbra, limb-darkening, and light curves</div>
+    </header>
+
+    <section id="controls" class="card">
+      <div class="row">
+        <label>Mode:</label>
+        <select id="mode">
+          <option value="solar">Solar eclipse</option>
+          <option value="lunar">Lunar eclipse</option>
+        </select>
+
+        <label>Run / Step:</label>
+        <button id="play">Play</button>
+        <button id="pause">Pause</button>
+        <button id="step">Step</button>
+        <button id="reset">Reset</button>
+      </div>
+
+      <div class="row">
+        <label>Speed ×</label>
+        <input id="speed" type="range" min="0.1" max="5" step="0.1" value="1">
+
+        <label>Impact (offset)</label>
+        <input id="impact" type="range" min="-1" max="1" step="0.01" value="0">
+
+        <label>Moon distance (rel)</label>
+        <input id="moonDist" type="range" min="0.8" max="1.2" step="0.01" value="1">
+
+        <label>Samples (flux)</label>
+        <input id="samples" type="range" min="20" max="300" step="10" value="120">
+      </div>
+
+      <div class="row">
+        <label><input id="limb" type="checkbox" checked> Limb darkening (solar)</label>
+        <label><input id="showGuides" type="checkbox"> Show guides (radii / umb/pen)</label>
+        <label><input id="redTint" type="checkbox" checked> Lunar red tint (atmosphere)</label>
+      </div>
+
+      <div class="row">
+        <button id="exportPng">Export PNG</button>
+        <button id="exportCsv">Export CSV (light curve)</button>
+        <button id="pathCsv">Compute & Export Path-of-Totality (approx)</button>
+      </div>
+
+      <div class="status" id="status">Status: ready</div>
+    </section>
+
+    <section id="visuals">
+      <div id="left" class="card">
+        <canvas id="sky" width="860" height="620"></canvas>
+        <div class="info" id="skyInfo"></div>
+      </div>
+
+      <div id="right" class="card">
+        <canvas id="curve" width="420" height="250"></canvas>
+        <canvas id="fractions" width="420" height="200"></canvas>
+        <div class="info" id="curveInfo"></div>
+      </div>
+    </section>
+
+    <footer>
+      <div>Model: apparent angular radius α = arctan(R/d). Overlap area uses exact circle–circle formula. Umbra/penumbra via similar triangles at Moon distance.</div>
+      <div>Author: Minimal, precise simulation for GitHub Pages</div>
+    </footer>
   </div>
-</div>
-<script src="script.js"></script>
+
+  <script src="script.js"></script>
 </body>
 </html>
