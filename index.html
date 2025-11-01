@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solar & Lunar Eclipse Simulator</title>
+  <title>Eclipse Simulator</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>🌗 Eclipse Simulator</h1>
-    <p class="subtitle">Simulate Solar and Lunar Eclipses in Real Time</p>
+    <h1>🌕 Eclipse Simulation</h1>
+    <p class="subtitle">Observe the geometry of Solar and Lunar Eclipses</p>
 
     <div class="controls">
       <button id="solarBtn" class="active">Solar Eclipse</button>
@@ -19,9 +19,11 @@
     <canvas id="canvas"></canvas>
 
     <div class="lightcurve">
-      <h2>Light Curve</h2>
+      <h2>Light Curve (Brightness vs Time)</h2>
       <canvas id="curveCanvas"></canvas>
     </div>
+
+    <p class="status">Status: <span id="statusText">Ready</span></p>
   </div>
 
   <script src="script.js"></script>
