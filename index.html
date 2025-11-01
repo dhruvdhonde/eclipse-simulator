@@ -3,32 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Eclipse Simulator</title>
+  <title>Eclipse Simulation</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>☀️ Eclipse Simulator</h1>
-    <p class="subtitle">Experience Solar & Lunar Eclipses in Motion</p>
+  <main class="container">
+    <h1>ECLIPSE SIMULATION</h1>
+    <p class="subtitle">Solar & Lunar Eclipse Interactive Visualization</p>
 
-    <div class="controls">
-      <button id="solarBtn" class="active">Solar Eclipse</button>
-      <button id="lunarBtn">Lunar Eclipse</button>
-    </div>
+    <section class="controls">
+      <div class="control-row">
+        <label>Mode:</label>
+        <select id="mode">
+          <option value="solar">Solar Eclipse</option>
+          <option value="lunar">Lunar Eclipse</option>
+        </select>
 
-    <canvas id="canvas"></canvas>
+        <button id="startBtn">Start</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+      </div>
 
-    <div class="infoBox" id="infoBox">
-      <p>In a <b>Solar Eclipse</b>, the Moon passes between the Sun and Earth, blocking sunlight partially or fully.</p>
-    </div>
+      <div class="control-row">
+        <label>Speed:</label>
+        <input type="range" id="speed" min="0.5" max="5" value="1" step="0.1">
 
-    <div class="lightcurve">
-      <h2>Light Curve (Brightness vs Time)</h2>
-      <canvas id="curveCanvas"></canvas>
-    </div>
+        <label>Impact Parameter:</label>
+        <input type="range" id="impact" min="-1" max="1" step="0.01" value="0">
 
-    <p class="status">Status: <span id="statusText">Ready</span></p>
-  </div>
+        <label>Moon Distance:</label>
+        <input type="range" id="moonDist" min="0.8" max="1.2" value="1" step="0.01">
+      </div>
+
+      <div class="control-row">
+        <label><input type="checkbox" id="limbDark" checked> Limb Darkening</label>
+        <label><input type="checkbox" id="showGuides"> Show Guides</label>
+      </div>
+
+      <div class="control-row">
+        <button id="exportPNG">Export PNG</button>
+        <button id="exportCSV">Export CSV</button>
+      </div>
+    </section>
+
+    <section class="simulation">
+      <canvas id="skyCanvas" width="900" height="500"></canvas>
+      <canvas id="curveCanvas" width="900" height="200"></canvas>
+    </section>
+
+    <section class="info">
+      <p><b>Angular Radius:</b> α = arctan(R / d)</p>
+      <p><b>Overlap Area:</b> Circle–Circle Intersection Formula</p>
+    </section>
+  </main>
+
   <script src="script.js"></script>
 </body>
 </html>
