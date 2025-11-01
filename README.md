@@ -76,8 +76,7 @@ All logic is implemented using plain JavaScript — **no external libraries or f
 
 ## 🚀 Live Demo
 
-👉 **[Click here to view the simulation](https://your-username.github.io/eclipse-simulation/)**  
-*(Replace `your-username` with your actual GitHub username before deploying.)*
+👉 **[Click here to view the simulation](https://dhruvdhonde.github.io/eclipse-simulator/)**  
 
 ---
 
@@ -109,13 +108,6 @@ Aspiring **Tech Entrepreneur and Consultant**, passionate about computational si
 - Predictive eclipse timing model  
 - Enhanced shading & atmospheric scattering for realism  
 - Exportable simulation results (CSV / PNG)
-
----
-
-## 🪪 License
-
-This project is licensed under the **MIT License**.  
-Free to use, modify, and share for educational and personal purposes.
 
 ---
 
