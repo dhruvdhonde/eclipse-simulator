@@ -8,8 +8,8 @@
 </head>
 <body>
   <div class="container">
-    <h1>🌕 Eclipse Simulation</h1>
-    <p class="subtitle">Observe the geometry of Solar and Lunar Eclipses</p>
+    <h1>☀️ Eclipse Simulator</h1>
+    <p class="subtitle">Experience Solar & Lunar Eclipses in Motion</p>
 
     <div class="controls">
       <button id="solarBtn" class="active">Solar Eclipse</button>
@@ -18,6 +18,10 @@
 
     <canvas id="canvas"></canvas>
 
+    <div class="infoBox" id="infoBox">
+      <p>In a <b>Solar Eclipse</b>, the Moon passes between the Sun and Earth, blocking sunlight partially or fully.</p>
+    </div>
+
     <div class="lightcurve">
       <h2>Light Curve (Brightness vs Time)</h2>
       <canvas id="curveCanvas"></canvas>
@@ -25,7 +29,6 @@
 
     <p class="status">Status: <span id="statusText">Ready</span></p>
   </div>
-
   <script src="script.js"></script>
 </body>
 </html>
