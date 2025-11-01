@@ -1,0 +1,41 @@
+body {
+  background: radial-gradient(circle, #00111a, #000);
+  color: #fff;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+canvas {
+  background: radial-gradient(circle, #ffdd33, #ffcc00);
+  border-radius: 50%;
+  margin-top: 20px;
+}
+
+.controls {
+  margin-top: 15px;
+}
+
+button {
+  background: #00cc88;
+  border: none;
+  padding: 10px 20px;
+  color: #fff;
+  border-radius: 5px;
+  margin: 0 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background: #009966;
+}
