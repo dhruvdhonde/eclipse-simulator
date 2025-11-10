@@ -3,461 +3,352 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Eclipse Dynamics Engine — Advanced (Single File)</title>
+<title>Eclipse Simulator — Physics-Accurate & Single File</title>
 <style>
-/* =========================
-   UI / Theme - White & Yellow
-   ========================= */
 :root{
-  --bg: #ffffff;
+  --bg: #fffdf6;
   --panel: #fffaf0;
   --accent: #f6b100;
-  --muted: #5a5a5a;
-  --card-border: rgba(0,0,0,0.04);
-  --glass: rgba(255,255,255,0.9);
-  --success: #2e8b57;
-  --danger: #c0392b;
-  --shadow: 0 8px 30px rgba(0,0,0,0.06);
-  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
+  --muted:#666;
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;background:linear-gradient(180deg,#fff,#fffdf7);color:#222}
-.container{max-width:1200px;margin:18px auto;padding:16px}
-.header{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.title{display:flex;flex-direction:column}
-h1{margin:0;color:var(--accent);font-size:1.6rem;letter-spacing:0.4px}
-.subtitle{color:var(--muted);font-size:0.92rem;margin-top:6px}
-.layout{display:grid;grid-template-columns:340px 1fr;gap:14px;margin-top:12px}
-.panel{background:var(--panel);padding:12px;border-radius:12px;border:1px solid var(--card-border);box-shadow:var(--shadow)}
-.controls .sectionTitle{font-weight:700;margin-bottom:8px}
+body{margin:0;background:var(--bg);font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;color:#222}
+.container{max-width:1180px;margin:16px auto;padding:12px}
+.header{display:flex;justify-content:space-between;align-items:center}
+h1{margin:0;color:var(--accent);font-size:1.4rem}
+.subtitle{color:var(--muted);font-size:0.9rem}
+.layout{display:grid;grid-template-columns:340px 1fr;gap:12px;margin-top:12px}
+.panel{background:var(--panel);padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04)}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
 .label{min-width:120px;color:var(--muted);font-size:0.9rem}
-.control{flex:1;min-width:110px}
-select,input[type=range],input[type=number],button{padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:white}
-button{cursor:pointer;background:linear-gradient(180deg,var(--accent),#e6a800);color:#111;font-weight:700;border:none}
-button.secondary{background:#fff;border:1px solid #eee;color:#444}
+.control{flex:1}
+button, select, input[type=range]{padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:#fff}
+button{background:linear-gradient(180deg,var(--accent),#e6a800);color:#111;font-weight:700;cursor:pointer;border:none}
+button.secondary{background:#fff;border:1px solid #eee;color:#555}
 .small{font-size:0.85rem;color:var(--muted)}
-.canvasWrap{display:flex;flex-direction:column;gap:10px}
-#skyCanvas{width:100%;height:640px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffdf8);border:1px solid var(--card-border)}
-.plots{display:flex;gap:12px;margin-top:8px}
-.plot{flex:1;height:170px;border-radius:8px;background:#fff;border:1px solid #f0e7c5}
-.footer{margin-top:12px;font-size:0.85rem;color:var(--muted)}
+.canvasWrap{display:flex;flex-direction:column;gap:8px}
+#skyCanvas{width:100%;height:640px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffdf8);border:1px solid rgba(0,0,0,0.03)}
+.plots{display:flex;gap:10px}
+.plot{flex:1;height:160px;border-radius:8px;background:#fff;border:1px solid #efe7d0}
+.footer{margin-top:10px;font-size:0.85rem;color:var(--muted)}
 .badge{display:inline-block;padding:6px 8px;border-radius:8px;background:#fff8e1;color:#7a4d00;border:1px solid #f1e0a4;font-weight:600}
-.help{font-size:12px;color:#444;margin-top:8px}
-.legend{font-size:13px;color:var(--muted)}
-.toggle{display:inline-flex;gap:8px;align-items:center}
-.checkbox{transform:scale(1.05)}
-.kv{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;background:transparent}
-@media (max-width:1000px){ .layout{grid-template-columns:1fr} .label{min-width:100px} }
+@media(max-width:1000px){.layout{grid-template-columns:1fr} .label{min-width:90px}}
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <div class="title">
-      <h1>Eclipse Dynamics Engine — Advanced</h1>
-      <div class="subtitle">Physics-heavy Solar & Lunar Eclipse Simulator — Earth, Umbra, Penumbra, Diamond & Ring effects</div>
+    <div>
+      <h1>Eclipse Simulator — Physics Mode</h1>
+      <div class="subtitle">Sun, Earth, Moon — Umbra, Penumbra, Ring of Fire, Diamond Ring, Light Curves</div>
     </div>
     <div style="text-align:right">
-      <div class="badge">White • Yellow Theme</div>
-      <div class="small" style="margin-top:6px">Author: Dhruv — Submission-ready</div>
+      <div class="badge">White · Yellow Theme</div>
     </div>
   </div>
 
   <div class="layout">
-    <!-- Controls Panel -->
-    <div class="panel controls">
-      <div class="sectionTitle">Simulation Controls</div>
-
+    <!-- Controls -->
+    <div class="panel">
       <div class="row">
         <div class="label">Mode</div>
-        <div class="control">
-          <select id="modeSelect" title="Solar or Lunar">
-            <option value="solar">Solar Eclipse (Moon between Sun & Earth)</option>
-            <option value="lunar">Lunar Eclipse (Earth shadow on Moon)</option>
-          </select>
-        </div>
+        <div class="control"><select id="mode"><option value="solar">Solar Eclipse</option><option value="lunar">Lunar Eclipse</option></select></div>
       </div>
 
       <div class="row">
         <div class="label">Run</div>
-        <div style="display:flex;gap:8px;flex:1">
-          <button id="startBtn">Start</button>
-          <button id="pauseBtn" class="secondary">Pause</button>
-          <button id="stepBtn" class="secondary">Step</button>
-          <button id="resetBtn" class="secondary">Reset</button>
+        <div style="display:flex;gap:8px">
+          <button id="start">Start</button>
+          <button id="pause" class="secondary">Pause</button>
+          <button id="reset" class="secondary">Reset</button>
         </div>
       </div>
 
-      <div style="margin-top:8px" class="sectionTitle">Orbital & Geometry</div>
-
       <div class="row">
-        <div class="label">Simulation Speed</div>
-        <div class="control">
-          <input id="speedRange" type="range" min="0.05" max="6" step="0.05" value="1">
-        </div>
-        <div class="small" id="speedVal">1.00x</div>
+        <div class="label">Speed</div>
+        <div class="control"><input id="speed" type="range" min="0.2" max="5" step="0.1" value="1"></div>
+        <div class="small" id="speedVal">1.0x</div>
       </div>
 
       <div class="row">
-        <div class="label">Earth Rotation (°/day)</div>
-        <div class="control">
-          <input id="earthRotRange" type="range" min="0" max="360" step="1" value="15">
-        </div>
-        <div class="small" id="earthRotVal">15°/day</div>
-      </div>
-
-      <div class="row">
-        <div class="label">Earth Tilt (°)</div>
-        <div class="control"><input id="earthTiltRange" type="range" min="0" max="30" step="0.1" value="23.44"></div>
-        <div class="small" id="earthTiltVal">23.44°</div>
-      </div>
-
-      <div class="row">
-        <div class="label">Moon Distance Scale</div>
-        <div class="control"><input id="moonDistRange" type="range" min="0.85" max="1.3" step="0.01" value="1"></div>
+        <div class="label">Moon Distance</div>
+        <div class="control"><input id="moonDist" type="range" min="0.8" max="1.3" step="0.01" value="1"></div>
         <div class="small" id="moonDistVal">1.00</div>
       </div>
 
       <div class="row">
-        <div class="label">Sun–Earth Distance Scale</div>
-        <div class="control"><input id="sunDistRange" type="range" min="0.95" max="1.05" step="0.001" value="1"></div>
+        <div class="label">Sun Distance (AU)</div>
+        <div class="control"><input id="sunDist" type="range" min="0.98" max="1.02" step="0.0005" value="1"></div>
         <div class="small" id="sunDistVal">1.000 AU</div>
       </div>
 
       <div class="row">
         <div class="label">Moon Size Scale</div>
-        <div class="control"><input id="moonSizeRange" type="range" min="0.6" max="1.4" step="0.01" value="1"></div>
+        <div class="control"><input id="moonSize" type="range" min="0.6" max="1.4" step="0.01" value="1"></div>
         <div class="small" id="moonSizeVal">1.00x</div>
       </div>
 
-      <div style="margin-top:8px" class="sectionTitle">Visual & Effects</div>
-
       <div class="row">
-        <div class="label">Limb Darkening (Sun)</div>
-        <div class="control">
-          <label class="toggle"><input id="limbToggle" class="checkbox" type="checkbox" checked> Enabled</label>
-        </div>
+        <div class="label">Earth Tilt (°)</div>
+        <div class="control"><input id="earthTilt" type="range" min="0" max="30" step="0.1" value="23.44"></div>
+        <div class="small" id="earthTiltVal">23.44°</div>
       </div>
 
       <div class="row">
-        <div class="label">Show Umbra / Penumbra</div>
-        <div class="control">
-          <label class="toggle"><input id="shadowToggle" class="checkbox" type="checkbox" checked> Show</label>
-        </div>
+        <div class="label">Earth Rotation (°/step)</div>
+        <div class="control"><input id="earthRot" type="range" min="0" max="30" step="0.5" value="2"></div>
+        <div class="small" id="earthRotVal">2°/step</div>
+      </div>
+
+      <div class="row">
+        <div class="label">Impact (offset)</div>
+        <div class="control"><input id="impact" type="range" min="-0.9" max="0.9" step="0.01" value="0"></div>
+        <div class="small" id="impactVal">0.00</div>
+      </div>
+
+      <div class="row">
+        <div class="label">Limb Darkening</div>
+        <div class="control"><label><input id="limb" type="checkbox" checked> Enabled</label></div>
+      </div>
+
+      <div class="row">
+        <div class="label">Show Guides</div>
+        <div class="control"><label><input id="guides" type="checkbox"> Guides</label></div>
       </div>
 
       <div class="row">
         <div class="label">Diamond Ring</div>
-        <div class="control"><label class="toggle"><input id="diamondToggle" class="checkbox" checked> Fancy</label></div>
+        <div class="control"><label><input id="diamond" type="checkbox" checked> Show</label></div>
       </div>
 
       <div class="row">
         <div class="label">Ring of Fire</div>
-        <div class="control"><label class="toggle"><input id="ringToggle" class="checkbox" checked> Show</label></div>
+        <div class="control"><label><input id="ring" type="checkbox" checked> Show</label></div>
       </div>
-
-      <div style="margin-top:8px" class="sectionTitle">Output & Presets</div>
 
       <div class="row">
         <div class="label">Export</div>
-        <div style="display:flex;gap:8px;flex:1">
-          <button id="exportPNG" class="secondary">Export PNG</button>
-          <button id="exportCSV" class="secondary">Export CSV</button>
+        <div style="display:flex;gap:8px">
+          <button id="exportPng" class="secondary">PNG</button>
+          <button id="exportCsv" class="secondary">CSV</button>
         </div>
       </div>
 
       <div class="row">
         <div class="label">Presets</div>
-        <div style="display:flex;gap:8px;flex:1;flex-wrap:wrap">
-          <button class="secondary presetBtn" data-preset="typical">Typical Total</button>
-          <button class="secondary presetBtn" data-preset="annular">Annular</button>
-          <button class="secondary presetBtn" data-preset="lunar">Lunar Total</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="secondary preset" data-preset="typical">Total</button>
+          <button class="secondary preset" data-preset="annular">Annular</button>
+          <button class="secondary preset" data-preset="lunar">Lunar</button>
         </div>
       </div>
 
-      <div class="help">Tip: Use presets to quickly configure realistic scenarios. Adjust Moon distance for total vs annular behavior. Earth tilt and rotation affect shadow placement.</div>
-
+      <div class="small" style="margin-top:6px">Tip: Use Moon Distance to switch between total and annular eclipses. Pause to inspect geometry.</div>
     </div>
 
-    <!-- Canvas and Plots Panel -->
+    <!-- Canvas & plots -->
     <div class="panel canvasWrap">
       <canvas id="skyCanvas"></canvas>
-      <div style="display:flex;gap:12px;margin-top:6px">
+      <div class="plots">
         <canvas id="fluxPlot" class="plot"></canvas>
-        <canvas id="umbraPlot" class="plot"></canvas>
+        <canvas id="fracPlot" class="plot"></canvas>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:8px">
-        <div class="legend">Left: sky-plane (observer-centric). Right: flux & umbra fractions.</div>
-        <div class="small" id="status">Status: Ready</div>
+        <div class="small">Sky-plane (center) • Flux & Shadow Fractions (right)</div>
+        <div id="status" class="small">Status: Ready</div>
       </div>
     </div>
   </div>
 
   <div class="footer panel">
     <div style="font-weight:700">Notes</div>
-    <div class="small">This simulator uses angular geometry (α = arctan(R/d)), circle–circle overlap for obscuration, and similar-triangles for umbra/penumbra radii at Moon distance. Use exports to save results. All computation is done client-side in JavaScript.</div>
+    <div class="small">Angular radii computed by α = arctan(R / d). Umbra/penumbra computed via similar triangles. Circle–circle overlap for obscuration fraction. All computation client-side.</div>
   </div>
-
 </div>
 
 <script>
-/* ======================================================
-   Eclipse Dynamics Engine v1.0
-   Single-file, physics-focused simulation
-   - Solar & lunar modes
-   - Earth included with rotation & tilt
-   - Umbra & penumbra geometry via similar triangles
-   - Limb darkening, ring-of-fire, diamond ring
-   - Light curve plotting, exports, presets
-   ====================================================== */
+/* -----------------------------
+   WORKING ECLIPSE SIMULATOR
+   - Single file, physics mapping, UI controls
+   - Solar & Lunar modes
+   - No external dependencies
+   ----------------------------- */
 
-/* -------------------------
-   Utility helpers
-   ------------------------- */
-function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
-function lerp(a,b,t){ return a + (b-a)*t; }
+/* ---------- Utilities ---------- */
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 function now(){ return performance.now(); }
-function fmt(x, d=2){ return Number.parseFloat(x).toFixed(d); }
 
-/* -------------------------
-   DOM & Canvas setup
-   ------------------------- */
+/* ---------- Canvases ---------- */
 const skyCanvas = document.getElementById('skyCanvas');
 const skyCtx = skyCanvas.getContext('2d');
 const fluxCanvas = document.getElementById('fluxPlot');
 const fluxCtx = fluxCanvas.getContext('2d');
-const umbraCanvas = document.getElementById('umbraPlot');
-const umbraCtx = umbraCanvas.getContext('2d');
+const fracCanvas = document.getElementById('fracPlot');
+const fracCtx = fracCanvas.getContext('2d');
 
-function resizeAllCanvases(){
-  // device pixel ratio handling for crisp rendering
+function resizeCanvases(){
   const ratio = Math.min(window.devicePixelRatio || 1, 2);
-  [skyCanvas, fluxCanvas, umbraCanvas].forEach(c => {
-    const rectW = c.clientWidth || c.parentElement.clientWidth;
-    const rectH = c.clientHeight || 400;
-    c.width = Math.max(1, Math.floor(rectW * ratio));
-    c.height = Math.max(1, Math.floor(rectH * ratio));
-    const ctx = c.getContext('2d');
-    ctx.setTransform(ratio,0,0,ratio,0,0);
-  });
+  // set sizes to client sizes
+  const setSize = (c) => {
+    const w = c.clientWidth || (window.innerWidth - 380);
+    const h = c.clientHeight || 600;
+    c.width = Math.max(1, Math.floor(w * ratio));
+    c.height = Math.max(1, Math.floor(h * ratio));
+    c.getContext('2d').setTransform(ratio,0,0,ratio,0,0);
+  };
+  setSize(skyCanvas);
+  setSize(fluxCanvas);
+  setSize(fracCanvas);
 }
-window.addEventListener('resize', ()=>{ resizeAllCanvases(); drawFrame(); });
-resizeAllCanvases();
+window.addEventListener('resize', ()=>{ resizeCanvases(); drawOnce(); });
+resizeCanvases();
 
-/* -------------------------
-   Physical constants (km)
-   ------------------------- */
+/* ---------- Physical constants (km) ---------- */
 const PHY = {
-  R_sun: 695700,            // km
-  R_earth: 6371,            // km
-  R_moon: 1737.4,           // km
-  D_earth_sun: 149597870,   // km ~ 1 AU
-  D_earth_moon: 384400      // km average
+  R_sun: 695700,
+  R_earth: 6371,
+  R_moon: 1737.4,
+  D_earth_sun: 149597870, // km
+  D_earth_moon: 384400
 };
 
-/* -------------------------
-   Simulation state
-   ------------------------- */
+/* ---------- DOM refs ---------- */
 const UI = {
-  modeSelect: document.getElementById('modeSelect'),
-  startBtn: document.getElementById('startBtn'),
-  pauseBtn: document.getElementById('pauseBtn'),
-  stepBtn: document.getElementById('stepBtn'),
-  resetBtn: document.getElementById('resetBtn'),
-  speedRange: document.getElementById('speedRange'),
+  mode: document.getElementById('mode'),
+  start: document.getElementById('start'),
+  pause: document.getElementById('pause'),
+  reset: document.getElementById('reset'),
+  speed: document.getElementById('speed'),
   speedVal: document.getElementById('speedVal'),
-  earthRotRange: document.getElementById('earthRotRange'),
-  earthRotVal: document.getElementById('earthRotVal'),
-  earthTiltRange: document.getElementById('earthTiltRange'),
-  earthTiltVal: document.getElementById('earthTiltVal'),
-  moonDistRange: document.getElementById('moonDistRange'),
+  moonDist: document.getElementById('moonDist'),
   moonDistVal: document.getElementById('moonDistVal'),
-  sunDistRange: document.getElementById('sunDistRange'),
+  sunDist: document.getElementById('sunDist'),
   sunDistVal: document.getElementById('sunDistVal'),
-  moonSizeRange: document.getElementById('moonSizeRange'),
+  moonSize: document.getElementById('moonSize'),
   moonSizeVal: document.getElementById('moonSizeVal'),
-  samplesRange: document.getElementById('samplesRange'),
-  limbToggle: document.getElementById('limbToggle'),
-  shadowToggle: document.getElementById('shadowToggle'),
-  diamondToggle: document.getElementById('diamondToggle'),
-  ringToggle: document.getElementById('ringToggle'),
-  exportPNG: document.getElementById('exportPNG'),
-  exportCSV: document.getElementById('exportCSV'),
-  presetBtns: document.querySelectorAll('.presetBtn'),
+  earthTilt: document.getElementById('earthTilt'),
+  earthTiltVal: document.getElementById('earthTiltVal'),
+  earthRot: document.getElementById('earthRot'),
+  earthRotVal: document.getElementById('earthRotVal'),
+  impact: document.getElementById('impact'),
+  impactVal: document.getElementById('impactVal'),
+  limb: document.getElementById('limb'),
+  guides: document.getElementById('guides'),
+  diamond: document.getElementById('diamond'),
+  ring: document.getElementById('ring'),
+  exportPng: document.getElementById('exportPng'),
+  exportCsv: document.getElementById('exportCsv'),
+  presets: document.querySelectorAll('.preset'),
   status: document.getElementById('status')
 };
 
+/* ---------- Simulation STATE ---------- */
 const STATE = {
   running: false,
-  t: 0,                      // normalized time 0..1 for a single eclipse event
-  dtBase: 0.0008,            // base time step per animation frame (scaled by speed)
-  speed: parseFloat(UI.speedRange.value),
-  earthRotationRateDegPerDay: parseFloat(UI.earthRotRange.value),
-  earthTiltDeg: parseFloat(UI.earthTiltRange.value),
-  moonDistScale: parseFloat(UI.moonDistRange.value),
-  sunDistScale: parseFloat(UI.sunDistRange.value),
-  moonSizeScale: parseFloat(UI.moonSizeRange.value),
-  samples: 140,
-  limb: UI.limbToggle.checked,
-  showShadow: UI.shadowToggle.checked,
-  showDiamond: UI.diamondToggle.checked,
-  showRing: UI.ringToggle.checked,
-  fluxSeries: [],            // light curve data {t,flux}
-  umbraSeries: []            // {t,umbra,penumbra}
+  t: 0,                  // normalized 0..1 for single event
+  dtBase: 0.0012,
+  speed: parseFloat(UI.speed.value),
+  moonDistScale: parseFloat(UI.moonDist.value),
+  sunDistScale: parseFloat(UI.sunDist.value),
+  moonSizeScale: parseFloat(UI.moonSize.value),
+  earthTiltDeg: parseFloat(UI.earthTilt.value),
+  earthRotDegPerStep: parseFloat(UI.earthRot.value),
+  impact: parseFloat(UI.impact.value),
+  limb: UI.limb.checked,
+  guides: UI.guides.checked,
+  showDiamond: UI.diamond.checked,
+  showRing: UI.ring.checked,
+  fluxSeries: [],
+  fracSeries: []
 };
 
-/* -------------------------
-   UI Update functions
-   ------------------------- */
-function updateUIFields(){
-  UI.speedVal.textContent = STATE.speed.toFixed(2) + 'x';
-  UI.earthRotVal.textContent = STATE.earthRotationRateDegPerDay + '°/day';
-  UI.earthTiltVal.textContent = STATE.earthTiltDeg.toFixed(2) + '°';
-  UI.moonDistVal.textContent = STATE.moonDistScale.toFixed(2) + '×';
-  UI.sunDistVal.textContent = STATE.sunDistScale.toFixed(3) + ' AU';
-  UI.moonSizeVal.textContent = STATE.moonSizeScale.toFixed(2) + '×';
+/* ---------- UI wiring ---------- */
+function updateUIDisplays(){
+  UI.speedVal.textContent = STATE.speed.toFixed(2)+'x';
+  UI.moonDistVal.textContent = STATE.moonDistScale.toFixed(2);
+  UI.sunDistVal.textContent = STATE.sunDistScale.toFixed(3)+' AU';
+  UI.moonSizeVal.textContent = STATE.moonSizeScale.toFixed(2)+'x';
+  UI.earthTiltVal.textContent = STATE.earthTiltDeg.toFixed(2)+'°';
+  UI.earthRotVal.textContent = STATE.earthRotDegPerStep.toFixed(1)+'°/step';
+  UI.impactVal.textContent = STATE.impact.toFixed(2);
 }
+UI.speed.addEventListener('input', ()=>{ STATE.speed = parseFloat(UI.speed.value); updateUIDisplays(); });
+UI.moonDist.addEventListener('input', ()=>{ STATE.moonDistScale = parseFloat(UI.moonDist.value); updateUIDisplays(); resetData(); });
+UI.sunDist.addEventListener('input', ()=>{ STATE.sunDistScale = parseFloat(UI.sunDist.value); updateUIDisplays(); resetData(); });
+UI.moonSize.addEventListener('input', ()=>{ STATE.moonSizeScale = parseFloat(UI.moonSize.value); updateUIDisplays(); resetData(); });
+UI.earthTilt.addEventListener('input', ()=>{ STATE.earthTiltDeg = parseFloat(UI.earthTilt.value); updateUIDisplays(); });
+UI.earthRot.addEventListener('input', ()=>{ STATE.earthRotDegPerStep = parseFloat(UI.earthRot.value); updateUIDisplays(); });
+UI.impact.addEventListener('input', ()=>{ STATE.impact = parseFloat(UI.impact.value); updateUIDisplays(); resetData(); });
+UI.limb.addEventListener('change', ()=> STATE.limb = UI.limb.checked);
+UI.guides.addEventListener('change', ()=> STATE.guides = UI.guides.checked);
+UI.diamond.addEventListener('change', ()=> STATE.showDiamond = UI.diamond.checked);
+UI.ring.addEventListener('change', ()=> STATE.showRing = UI.ring.checked);
 
-/* Bind events */
-UI.speedRange.addEventListener('input', ()=>{
-  STATE.speed = parseFloat(UI.speedRange.value);
-  updateUIFields();
+/* Start / Pause / Reset */
+UI.start.addEventListener('click', ()=>{
+  if (!STATE.running){ STATE.running = true; lastAnim = now(); requestAnimationFrame(loop); UI.status.textContent='Status: Running'; }
 });
-UI.earthRotRange.addEventListener('input', ()=>{
-  STATE.earthRotationRateDegPerDay = parseFloat(UI.earthRotRange.value);
-  updateUIFields();
-});
-UI.earthTiltRange.addEventListener('input', ()=>{
-  STATE.earthTiltDeg = parseFloat(UI.earthTiltRange.value);
-  updateUIFields();
-});
-UI.moonDistRange.addEventListener('input', ()=>{
-  STATE.moonDistScale = parseFloat(UI.moonDistRange.value);
-  updateUIFields();
-});
-UI.sunDistRange.addEventListener('input', ()=>{
-  STATE.sunDistScale = parseFloat(UI.sunDistRange.value);
-  updateUIFields();
-});
-UI.moonSizeRange.addEventListener('input', ()=>{
-  STATE.moonSizeScale = parseFloat(UI.moonSizeRange.value);
-  updateUIFields();
-});
-UI.samplesRange?.addEventListener('input', (e)=>{
-  STATE.samples = parseInt(e.target.value,10);
-});
-UI.limbToggle.addEventListener('change', ()=> STATE.limb = UI.limbToggle.checked);
-UI.shadowToggle.addEventListener('change', ()=> STATE.showShadow = UI.shadowToggle.checked);
-UI.diamondToggle.addEventListener('change', ()=> STATE.showDiamond = UI.diamondToggle.checked);
-UI.ringToggle.addEventListener('change', ()=> STATE.showRing = UI.ringToggle.checked);
+UI.pause.addEventListener('click', ()=>{ STATE.running = false; UI.status.textContent='Status: Paused'; });
+UI.reset.addEventListener('click', ()=>{ reset(); UI.status.textContent='Status: Reset'; });
 
-/* Start / Pause / Step / Reset handlers */
-UI.startBtn.addEventListener('click', ()=>{
-  if (!STATE.running){ STATE.running = true; lastFrameTime = now(); requestAnimationFrame(loop); UI.status.textContent='Status: Running'; }
-});
-UI.pauseBtn.addEventListener('click', ()=>{
-  STATE.running = false; UI.status.textContent='Status: Paused';
-});
-UI.stepBtn.addEventListener('click', ()=>{ stepOnce(); });
-UI.resetBtn.addEventListener('click', ()=>{ resetSimulation(); });
+UI.exportPng.addEventListener('click', ()=>{ const url = skyCanvas.toDataURL('image/png'); const a=document.createElement('a'); a.href=url; a.download='eclipse.png'; a.click(); });
+UI.exportCsv.addEventListener('click', exportCSV);
 
-UI.exportPNG.addEventListener('click', exportSkyPNG);
-UI.exportCSV.addEventListener('click', exportCSV);
+UI.presets.forEach(btn=> btn.addEventListener('click', ()=> applyPreset(btn.dataset.preset)));
 
-UI.presetBtns.forEach(btn => btn.addEventListener('click', ()=> applyPreset(btn.dataset.preset)));
+/* ---------- Geometry helpers ---------- */
+function angularRadius(R_km, d_km){ return Math.atan2(R_km, d_km); }
 
-/* mode change */
-UI.modeSelect.addEventListener('change', ()=> {
-  resetSimulation();
-});
-
-/* -------------------------
-   Orbital & geometry helpers
-   ------------------------- */
-
-/*
-  Angular radius function (radians):
-  alpha = arctan(R / d)  (exact)
-*/
-function angularRadiusRad(R_km, d_km){
-  return Math.atan2(R_km, d_km);
-}
-
-/*
-  Umbra & penumbra geometry using similar triangles.
-  For Earth casting shadow from the Sun:
-    L_umbra = R_e * D_es / (R_s - R_e)
-  At moon distance (from Earth's center), the umbra radius is:
-    r_umbra_at_moon = R_e * (1 - moonDistance / L_umbra)
-  We compute both umbra and penumbra radii at moon distance (km).
-*/
-function computeUmbraPenumbraAtDistance(moonDistance_km, sunEarthDist_km){
-  const R_e = PHY.R_earth;
-  const R_s = PHY.R_sun;
-  const D_es = sunEarthDist_km;
+/* Umbra/penumbra calculation at a distance (km) from Earth's center */
+function umbraPenumbraAt(moonDistance_km, sunDistance_km){
+  const R_e = PHY.R_earth, R_s = PHY.R_sun, D_es = sunDistance_km;
   const L_umbra = (R_e * D_es) / Math.max(1e-9, (R_s - R_e));
   const r_umbra = Math.max(0, R_e * (1 - moonDistance_km / L_umbra));
-  // penumbra approximate via grazing lines from Sun's radius
-  const sunAng = Math.atan2(R_s, D_es);
-  const pen_extra = Math.tan(sunAng) * moonDistance_km;
+  const sun_ang = Math.atan2(R_s, D_es);
+  const pen_extra = Math.tan(sun_ang) * moonDistance_km;
   const r_penumbra = r_umbra + pen_extra * 1.02;
   return { L_umbra, r_umbra, r_penumbra };
 }
 
-/* Circle–circle intersection area helper (r1,r2,d in same units) */
+/* Circle intersection area (pixels or same units) */
 function circleIntersectionArea(r1, r2, d){
   if (d >= r1 + r2) return 0;
   if (d <= Math.abs(r1 - r2)) return Math.PI * Math.min(r1,r2)**2;
   const r1sq = r1*r1, r2sq = r2*r2;
-  const alpha = Math.acos(clamp((d*d + r1sq - r2sq) / (2 * d * r1), -1, 1));
-  const beta  = Math.acos(clamp((d*d + r2sq - r1sq) / (2 * d * r2), -1, 1));
-  const area = r1sq*alpha + r2sq*beta - 0.5 * Math.sqrt(Math.max(0, (-d + r1 + r2)*(d + r1 - r2)*(d - r1 + r2)*(d + r1 + r2)));
+  const alpha = Math.acos(clamp((d*d + r1sq - r2sq) / (2*d*r1), -1,1));
+  const beta  = Math.acos(clamp((d*d + r2sq - r1sq) / (2*d*r2), -1,1));
+  const area = r1sq*alpha + r2sq*beta - 0.5 * Math.sqrt(Math.max(0, (-d+r1+r2)*(d+r1-r2)*(d-r1+r2)*(d+r1+r2)));
   return area;
 }
 
-/* Simple limb darkening law (1-parameter)
-   I(mu) = 1 - u (1 - mu)  where mu = cos(theta) = sqrt(1 - (r/R)^2)
-*/
-function limbBrightnessFactor(rFrac, u=0.6){
+/* Limb-darkening factor */
+function limbFactor(rFrac, u=0.6){
   if (rFrac >= 1) return 0;
   const mu = Math.sqrt(Math.max(0, 1 - rFrac*rFrac));
   return 1 - u * (1 - mu);
 }
 
-/* -------------------------
-   View mapping: physical -> canvas
-   We'll project Sun and Moon angular sizes into canvas pixels.
-   Strategy:
-    - Compute angular radii (radians) of Sun (from Earth) and Moon (from observer on Earth)
-    - Choose scale such that Sun radius uses a fixed fraction of canvas smaller dimension
+/* ---------- Mapping physical -> canvas ----------
+   Use angular radii to map Sun & Moon to pixel radii.
+   Keep Sun pixel radius ~30% of min(canvas width,height).
 */
-function computeCanvasMapping(){
-  // effective observer-centered distances
+function computeMapping(){
   const sunDist_km = PHY.D_earth_sun * STATE.sunDistScale;
   const moonDist_km = PHY.D_earth_moon * STATE.moonDistScale;
-  const alpha_sun = angularRadiusRad(PHY.R_sun, sunDist_km);     // radians
-  const alpha_moon = angularRadiusRad(PHY.R_moon * STATE.moonSizeScale, moonDist_km);
+  const alpha_sun = angularRadius(PHY.R_sun, sunDist_km); // rad
+  const alpha_moon = angularRadius(PHY.R_moon * STATE.moonSizeScale, moonDist_km);
   const canvasMin = Math.min(skyCanvas.clientWidth, skyCanvas.clientHeight);
-  // target sun pixel radius ~ 30% of min dimension
   const targetSunPx = canvasMin * 0.30;
   const pxPerRad = targetSunPx / alpha_sun;
   const sunPx = alpha_sun * pxPerRad;
   const moonPx = alpha_moon * pxPerRad;
-  return { sunPx, moonPx, pxPerRad, alpha_sun, alpha_moon, sunDist_km, moonDist_km };
+  return { sunPx, moonPx, pxPerRad, sunDist_km, moonDist_km, alpha_sun, alpha_moon };
 }
 
-/* -------------------------
-   Light curve sampling
-   ------------------------- 
-   For realistic limb-darkened light curve, we sample the solar disk on a grid
-   and count visible brightness after occultation by the Moon projection.
-*/
-function sampleLimbDarkenedFlux(sunPx, moonCx, moonCy, moonPx, samples){
+/* ---------- Sampling limb-darkened flux ---------- */
+function sampleFlux(sunPx, moonCx, moonCy, moonPx, samples=140){
   const R = sunPx;
-  const N = Math.max(20, Math.min(480, samples));
+  const N = Math.max(20, Math.min(420, samples));
   const step = (2*R) / N;
   let total = 0, visible = 0;
   for (let i=0;i<N;i++){
@@ -466,480 +357,320 @@ function sampleLimbDarkenedFlux(sunPx, moonCx, moonCy, moonPx, samples){
       const y = -R + (j+0.5)*step;
       const r = Math.hypot(x,y);
       if (r <= R){
-        const rFrac = r / R;
-        const lf = limbBrightnessFactor(rFrac, 0.6); // u=0.6 typical
+        const lf = limbFactor(r/R, 0.6);
         total += lf;
         const rx = x - moonCx;
         const ry = y - moonCy;
-        if (Math.hypot(rx, ry) > moonPx) visible += lf;
+        if (Math.hypot(rx,ry) > moonPx) visible += lf;
       }
     }
   }
-  return total <= 0 ? 1.0 : (visible / total);
+  return total <= 0 ? 1.0 : visible/total;
 }
 
-/* -------------------------
-   Drawing primitives
-   ------------------------- */
-
+/* ---------- Drawing primitives ---------- */
 function clearSky(){
   const w = skyCanvas.clientWidth, h = skyCanvas.clientHeight;
   skyCtx.clearRect(0,0,w,h);
-  // subtle paper-like background
   skyCtx.fillStyle = '#fffef8';
   skyCtx.fillRect(0,0,w,h);
 }
 
-/* draw sun with optional limb darkening gradient */
-function drawSun(cx, cy, sunPx){
+function drawSun(cx,cy,r){
   const rings = 30;
   for (let i=rings;i>0;i--){
     const rf = i / rings;
-    const br = limbBrightnessFactor(rf, 0.6);
-    const r = sunPx * rf;
+    const br = limbFactor(rf, 0.6);
     const cr = Math.floor(255 * (0.95*br + 0.05));
     const cg = Math.floor(220 * (0.9*br + 0.1));
     const cb = Math.floor(80 * (0.9*br + 0.1));
-    skyCtx.beginPath();
-    skyCtx.fillStyle = `rgb(${cr},${cg},${cb})`;
-    skyCtx.arc(cx, cy, r, 0, Math.PI*2);
-    skyCtx.fill();
+    skyCtx.beginPath(); skyCtx.fillStyle = `rgb(${cr},${cg},${cb})`; skyCtx.arc(cx,cy,r*rf,0,Math.PI*2); skyCtx.fill();
   }
-  // small inner glow
-  const g = skyCtx.createRadialGradient(cx, cy, 0, cx, cy, sunPx*1.2);
-  g.addColorStop(0, 'rgba(255,250,220,0.9)');
-  g.addColorStop(1, 'rgba(255,220,90,0)');
-  skyCtx.fillStyle = g;
-  skyCtx.beginPath();
-  skyCtx.arc(cx, cy, sunPx*1.25, 0, Math.PI*2);
-  skyCtx.fill();
+  // glow
+  const g = skyCtx.createRadialGradient(cx,cy,0,cx,cy,r*1.3);
+  g.addColorStop(0,'rgba(255,255,230,0.95)');
+  g.addColorStop(1,'rgba(255,220,80,0)');
+  skyCtx.fillStyle = g; skyCtx.beginPath(); skyCtx.arc(cx,cy,r*1.25,0,Math.PI*2); skyCtx.fill();
 }
 
-/* draw moon disk */
-function drawMoon(cx, cy, moonPx, shade=1.0){
-  // base
-  skyCtx.beginPath();
-  skyCtx.fillStyle = `rgba(${160*shade},${160*shade},${160*shade},1)`;
-  skyCtx.arc(cx, cy, moonPx, 0, Math.PI*2);
-  skyCtx.fill();
-  // cratered texture: subtle noise using arcs
-  skyCtx.save();
-  skyCtx.globalAlpha = 0.12;
-  skyCtx.fillStyle = '#bdbdbd';
+function drawMoon(cx,cy,r){
+  // base grey moon
+  skyCtx.beginPath(); skyCtx.fillStyle = '#bfbfbf'; skyCtx.arc(cx,cy,r,0,Math.PI*2); skyCtx.fill();
+  // simple craters
+  skyCtx.save(); skyCtx.globalAlpha = 0.12; skyCtx.fillStyle = '#9f9f9f';
   for (let i=0;i<8;i++){
-    const a = Math.random()*Math.PI*2;
-    const r = moonPx * (0.2 + Math.random()*0.6);
-    const px = cx + Math.cos(a) * moonPx * (0.2 + Math.random()*0.6);
-    const py = cy + Math.sin(a) * moonPx * (0.2 + Math.random()*0.6);
-    skyCtx.beginPath();
-    skyCtx.arc(px, py, r*0.12, 0, Math.PI*2);
-    skyCtx.fill();
+    const a = Math.random()*Math.PI*2; const cr = r*(0.08+Math.random()*0.18);
+    const px = cx + Math.cos(a)*r*(0.3+Math.random()*0.6), py = cy + Math.sin(a)*r*(0.3+Math.random()*0.6);
+    skyCtx.beginPath(); skyCtx.arc(px,py,cr,0,Math.PI*2); skyCtx.fill();
   }
   skyCtx.restore();
 }
 
-/* draw earth disk with day-night terminator */
-function drawEarth(cx, cy, earthPx, tiltDeg, rotAngleDeg){
-  // planet body
-  const grad = skyCtx.createLinearGradient(cx - earthPx, cy - earthPx, cx + earthPx, cy + earthPx);
-  grad.addColorStop(0, '#cfeeff');
-  grad.addColorStop(1, '#0b6fa0');
-  skyCtx.fillStyle = grad;
-  skyCtx.beginPath();
-  skyCtx.arc(cx, cy, earthPx, 0, Math.PI*2);
-  skyCtx.fill();
-
-  // continents stylized (for visuals only)
+function drawEarth(cx,cy,r,tiltDeg,rotDeg){
+  const grad = skyCtx.createRadialGradient(cx - r*0.3, cy - r*0.3, r*0.1, cx, cy, r);
+  grad.addColorStop(0,'#bfe9ff'); grad.addColorStop(1,'#0b6fa0');
+  skyCtx.fillStyle = grad; skyCtx.beginPath(); skyCtx.arc(cx,cy,r,0,Math.PI*2); skyCtx.fill();
+  // continents stylized
   skyCtx.fillStyle = 'rgba(8,45,68,0.14)';
-  skyCtx.beginPath(); skyCtx.ellipse(cx - earthPx*0.12, cy - earthPx*0.06, earthPx*0.42, earthPx*0.19, -0.2, 0, Math.PI*2); skyCtx.fill();
-  skyCtx.beginPath(); skyCtx.ellipse(cx + earthPx*0.22, cy + earthPx*0.12, earthPx*0.28, earthPx*0.14, 0.2, 0, Math.PI*2); skyCtx.fill();
-
-  // terminator: simulate day/night by rotating a shadow across Earth
-  const rot = (rotAngleDeg % 360) * Math.PI/180;
-  skyCtx.save();
-  skyCtx.translate(cx, cy);
-  skyCtx.rotate(rot);
-  const termWidth = earthPx * 1.2;
-  skyCtx.beginPath();
-  skyCtx.fillStyle = 'rgba(0,0,0,0.25)';
-  skyCtx.ellipse(0, 0, earthPx, earthPx, 0, Math.PI*0.5, Math.PI*1.5); // hemisphere shadow
-  skyCtx.fill();
+  skyCtx.beginPath(); skyCtx.ellipse(cx - r*0.12, cy - r*0.06, r*0.42, r*0.18, -0.2, 0, Math.PI*2); skyCtx.fill();
+  skyCtx.beginPath(); skyCtx.ellipse(cx + r*0.22, cy + r*0.12, r*0.28, r*0.14, 0.2, 0, Math.PI*2); skyCtx.fill();
+  // terminator (rotate by rotDeg)
+  skyCtx.save(); skyCtx.translate(cx,cy); skyCtx.rotate(rotDeg*Math.PI/180);
+  skyCtx.beginPath(); skyCtx.fillStyle = 'rgba(0,0,0,0.24)'; skyCtx.ellipse(0,0,r, r*1.02, 0, Math.PI*0.5, Math.PI*1.5); skyCtx.fill();
   skyCtx.restore();
 }
 
-/* draw umbra and penumbra projected at moon plane (canvas units) */
-function drawUmbraPenumbra(cx, cy, cuUmbra, cuPenumbra, earthPx){
-  // penumbra (light)
-  skyCtx.beginPath();
-  skyCtx.fillStyle = 'rgba(245,180,80,0.08)';
-  skyCtx.arc(cx, cy, cuPenumbra, 0, Math.PI*2);
-  skyCtx.fill();
-  // umbra (dark)
-  skyCtx.beginPath();
-  skyCtx.fillStyle = 'rgba(30,30,30,0.28)';
-  skyCtx.arc(cx, cy, cuUmbra, 0, Math.PI*2);
-  skyCtx.fill();
-  // earth rim marker
-  skyCtx.beginPath();
-  skyCtx.strokeStyle = 'rgba(0,0,0,0.06)';
-  skyCtx.lineWidth = 1;
-  skyCtx.arc(cx, cy, earthPx, 0, Math.PI*2);
-  skyCtx.stroke();
+function drawUmbraPenumbra(cx,cy,cuUmbra,cuPenumbra){
+  // penumbra
+  skyCtx.beginPath(); skyCtx.fillStyle = 'rgba(245,180,80,0.08)'; skyCtx.arc(cx,cy,cuPenumbra,0,Math.PI*2); skyCtx.fill();
+  // umbra
+  skyCtx.beginPath(); skyCtx.fillStyle = 'rgba(30,30,30,0.28)'; skyCtx.arc(cx,cy,cuUmbra,0,Math.PI*2); skyCtx.fill();
 }
 
-/* draw guides (optional) */
-function drawGuides(cx, cy, rSun, rMoon, x,y, cuUmbra, cuPenumbra){
-  skyCtx.save();
-  skyCtx.translate(cx, cy);
-  skyCtx.strokeStyle = 'rgba(0,0,0,0.06)';
-  skyCtx.lineWidth = 1;
-  skyCtx.beginPath(); skyCtx.arc(0,0,rSun,0,Math.PI*2); skyCtx.stroke();
-  skyCtx.beginPath(); skyCtx.arc(0,0,cuPenumbra,0,Math.PI*2); skyCtx.stroke();
-  skyCtx.beginPath(); skyCtx.arc(0,0,cuUmbra,0,Math.PI*2); skyCtx.stroke();
-  skyCtx.beginPath(); skyCtx.arc(x,y,rMoon,0,Math.PI*2); skyCtx.stroke();
-  skyCtx.restore();
+/* ---------- Compute + draw per frame ---------- */
+let lastAnim = now();
+function step(dt){
+  // dt in seconds since last frame
+  const incr = STATE.dtBase * STATE.speed * (dt*60);
+  STATE.t = clamp(STATE.t + incr, 0, 1);
 }
 
-/* diamond ring and ring-of-fire visual */
-function drawDiamondRing(cx, cy, rSun, rMoon, x,y, flux){
+function computeAndDraw(){
+  clearSky();
+  resizeCanvases(); // keep crispness if resized
+  const W = skyCanvas.clientWidth, H = skyCanvas.clientHeight;
+  const cx = W/2, cy = H/2;
+  const map = computeMapping();
+  const sunPx = map.sunPx, moonPx = map.moonPx;
+  // center sun for solar mode; for lunar, place Earth slightly left-bottom for composition
+  if (UI.mode.value === 'solar'){
+    // Sun centered
+    drawSun(cx, cy, sunPx);
+    // Moon path across sun horizontally with impact offset & small vertical component
+    const travel = 2.3 * (sunPx + moonPx);
+    const x = -travel/2 + travel * STATE.t;
+    const y = STATE.impact * (sunPx + moonPx);
+    const moonX = cx + x;
+    const moonY = cy + y;
+    drawMoon(moonX, moonY, moonPx);
+    // compute overlap & flux
+    const d = Math.hypot(x,y);
+    const A = circleIntersectionArea(sunPx, moonPx, d);
+    const obscuration = A / (Math.PI * sunPx * sunPx);
+    let flux = 1 - obscuration;
+    if (STATE.limb){
+      // sample limb-darkened flux (moonCx relative to sun center)
+      flux = sampleFlux(sunPx, x, y, moonPx, 140);
+    }
+    // Umbra/penumbra at moon distance projected roughly onto sun-plane (for visualization)
+    const umbPen = umbraPenumbraAt(map.moonDist_km, map.sunDist_km);
+    const km2px = moonPx / (PHY.R_moon * STATE.moonSizeScale);
+    const cuUmbra = umbPen.r_umbra * km2px;
+    const cuPenumbra = umbPen.r_penumbra * km2px;
+    if (STATE.guides) drawUmbraPenumbra(cx, cy, cuUmbra, cuPenumbra);
+    if (STATE.showDiamond || STATE.showRing) drawSpecialEffects(cx,cy,sunPx,moonPx,x,y,flux);
+    // update flux series
+    STATE.fluxSeries.push({t: STATE.t, flux: flux});
+    // draw readout
+    skyCtx.fillStyle = '#222'; skyCtx.font = '13px Inter';
+    skyCtx.fillText(`Solar Mode • Obscuration: ${(obscuration*100).toFixed(3)}% • Flux: ${flux.toFixed(4)}`, 12, 18);
+  } else {
+    // Lunar mode: Earth at left-bottom-ish
+    const earthPx = Math.max(48, sunPx * 0.35);
+    const ex = cx - (cx*0.26), ey = cy + (cy*0.08);
+    drawSun(cx + cx*0.36, cy - cy*0.28, sunPx*0.6);
+    // Earth rotation affects terminator (visual)
+    const rotAngle = (STATE.earthRotDegPerStep * STATE.t * 360) % 360;
+    drawEarth(ex, ey, earthPx, STATE.earthTiltDeg, rotAngle);
+    // compute umbra/penumbra radii at moon distance
+    const umbPen = umbraPenumbraAt(map.moonDist_km, map.sunDist_km);
+    const km2px = map.moonPx / (PHY.R_moon * STATE.moonSizeScale);
+    const cuUmbra = umbPen.r_umbra * km2px;
+    const cuPenumbra = umbPen.r_penumbra * km2px;
+    if (STATE.showShadow) drawUmbraPenumbra(ex, ey, cuUmbra, cuPenumbra);
+    // moon path passes through the shadow (horizontal)
+    const travel = Math.max(220, cuPenumbra*2.4);
+    const moonx = ex - travel/2 + travel * STATE.t;
+    const moony = ey - 200 + STATE.impact*80;
+    drawMoon(moonx, moony, map.moonPx);
+    // compute fractions
+    const dCenter = Math.hypot(moonx - ex, moony - ey);
+    const Au = circleIntersectionArea(map.moonPx, cuUmbra, dCenter);
+    const Ap = circleIntersectionArea(map.moonPx, cuPenumbra, dCenter);
+    const penOnly = Math.max(0, Ap - Au);
+    const umbra_frac = Au / (Math.PI * map.moonPx * map.moonPx);
+    const pen_frac = penOnly / (Math.PI * map.moonPx * map.moonPx);
+    // color/shade moon according to fraction
+    if (Au > 0){
+      skyCtx.beginPath(); skyCtx.fillStyle = `rgba(20,10,10,${0.8*umbra_frac})`; skyCtx.arc(moonx,moony,map.moonPx,0,Math.PI*2); skyCtx.fill();
+      skyCtx.beginPath(); skyCtx.fillStyle = `rgba(120,30,10,${0.45*umbra_frac})`; skyCtx.arc(moonx,moony,map.moonPx*0.92,0,Math.PI*2); skyCtx.fill();
+    } else if (penOnly > 0){
+      skyCtx.beginPath(); skyCtx.fillStyle = `rgba(0,0,0,${0.15*pen_frac})`; skyCtx.arc(moonx,moony,map.moonPx,0,Math.PI*2); skyCtx.fill();
+    }
+    // push fraction data for plot
+    STATE.fracSeries.push({t: STATE.t, umbra: umbra_frac, pen: pen_frac});
+    // readout
+    skyCtx.fillStyle = '#222'; skyCtx.font = '13px Inter';
+    skyCtx.fillText(`Lunar Mode • Umbra: ${(umbra_frac*100).toFixed(3)}% • Penumbra: ${(pen_frac*100).toFixed(3)}%`, 12, 18);
+  }
+  renderPlots();
+}
+
+/* Special visual effects: diamond ring & ring-of-fire */
+function drawSpecialEffects(cx,cy,sunPx,moonPx,x,y,flux){
   const sep = Math.hypot(x,y);
-  if (STATE.showDiamond && sep > Math.abs(rSun - rMoon) - 6 && sep < Math.abs(rSun - rMoon) + 6 && flux < 0.12){
+  // diamond ring: when moon just about to finish covering and small bright spot remains
+  if (STATE.showDiamond && sep > Math.abs(sunPx - moonPx) - 6 && sep < Math.abs(sunPx - moonPx) + 6 && flux < 0.12){
     const ang = Math.atan2(y,x);
-    const px = cx + (rSun * Math.cos(ang));
-    const py = cy + (rSun * Math.sin(ang));
+    const px = cx + Math.cos(ang) * (sunPx - 2);
+    const py = cy + Math.sin(ang) * (sunPx - 2);
     skyCtx.save();
-    skyCtx.beginPath();
+    skyCtx.shadowBlur = 30; skyCtx.shadowColor = '#fff6a8';
     skyCtx.fillStyle = 'rgba(255,255,240,0.98)';
-    skyCtx.shadowBlur = 40; skyCtx.shadowColor = '#fff6a8';
-    skyCtx.arc(px, py, 10, 0, Math.PI*2);
-    skyCtx.fill();
-    skyCtx.shadowBlur = 0;
+    skyCtx.beginPath(); skyCtx.arc(px,py,10,0,Math.PI*2); skyCtx.fill();
     skyCtx.restore();
   }
-  if (STATE.showRing && rMoon < rSun && Math.abs(STATE.impact||0) < 0.15 && sep < rSun * 0.12){
+  // ring of fire (annular)
+  if (STATE.showRing && moonPx < sunPx && Math.abs((x*x + y*y)**0.5) < sunPx*0.12){
     skyCtx.save();
     skyCtx.beginPath();
     skyCtx.lineWidth = 8;
     skyCtx.strokeStyle = 'rgba(246,177,0,0.92)';
-    skyCtx.arc(cx, cy, rSun - 4, 0, Math.PI*2);
+    skyCtx.arc(cx,cy,sunPx-4,0,Math.PI*2);
     skyCtx.stroke();
     skyCtx.restore();
   }
 }
 
-/* -------------------------
-   Simulation compute + draw per frame
-   ------------------------- */
-let lastFrameTime = now();
-function stepSimulation(dtSec){
-  // normalized simulation time increments scaled by speed and dtBase
-  const increment = STATE.dtBase * STATE.speed * (dtSec * 60); // scale dtSec to something meaningful
-  STATE.t = clamp(STATE.t + increment, 0, 1);
-}
-
-/* Compute all quantities for current STATE.t
-   returns geometry in canvas units and numeric values for display/export
-*/
-function computeFrameData(){
-  const mapping = computeCanvasMapping();
-  const sunPx = mapping.sunPx;
-  const moonPx = mapping.moonPx;
-  const pxPerRad = mapping.pxPerRad;
-  const sunDist_km = mapping.sunDist_km;
-  const moonDist_km = mapping.moonDist_km;
-
-  // travel path of moon across solar disk - choose travel length and impact param
-  const travel = 2.2 * (sunPx + moonPx);
-  // impact param: vertical offset relative to sun center
-  const impactVal = STATE.impact ?? 0; // optional extra; keep zero if not set
-  // user's chosen impact is via UI. We'll derive from earth tilt and clock later. For now: keep it0.
-  const x = -travel/2 + travel * STATE.t;
-  const y = 0 + (0) * (sunPx + moonPx); // allow future vertical track control
-
-  // effective moon center relative to sun center in sampling space (pixels)
-  // for more realistic tie to earth tilt, we can compute rotating track using Earth's rotation, but keep simple for sky-plane
-  const moonCx = x;
-  const moonCy = y;
-
-  // compute circle overlap in pixel space
-  const d = Math.hypot(moonCx, moonCy);
-  const overlapArea_px = circleIntersectionArea(sunPx, moonPx, d);
-  const obscuration = overlapArea_px / (Math.PI * sunPx * sunPx);
-  // limb darkened flux
-  let flux = 1 - obscuration;
-  if (STATE.limb){
-    flux = sampleLimbDarkenedFlux(sunPx, moonCx, moonCy, moonPx, STATE.samples);
-  }
-
-  // Umbra / penumbra radii at Moon physical distance
-  const umbPen = computeUmbraPenumbraAtDistance(moonDist_km, sunDist_km);
-  const km2canvas = moonPx / (PHY.R_moon * STATE.moonSizeScale);
-  const cuUmbra = umbPen.r_umbra * km2canvas;
-  const cuPenumbra = umbPen.r_penumbra * km2canvas;
-
-  // for lunar mode, compute moon position relative to Earth (shadow center)
-  // we map moonCx/moonCy to an equivalent canvas position near center; for lunar view, we will place Earth at center-left for clarity
-  const data = {
-    mapping, sunPx, moonPx, moonCx, moonCy, d, overlapArea_px, obscuration, flux, cuUmbra, cuPenumbra, umbPen
-  };
-  return data;
-}
-
-/* Draw frame (single) */
-function drawFrame(){
-  resizeAllCanvases(); // ensure crisp pixels (no heavy cost when not resizing)
-  clearSky();
-  const w = skyCanvas.clientWidth, h = skyCanvas.clientHeight;
-  const cx = w / 2, cy = h / 2;
-
-  const data = computeFrameData();
-  const sunPx = data.sunPx, moonPx = data.moonPx;
-  // Decide mode-specific drawing
-  if (UI.modeSelect.value === 'solar'){
-    // Center the Sun
-    drawSun(cx, cy, sunPx);
-    // Moon moves across sun using data.moonCx, moonCy
-    const moonX = cx + data.moonCx, moonY = cy + data.moonCy;
-    drawMoon(moonX, moonY, moonPx);
-    // Umbra/penumbra markers at the sun-plane for demonstration (not physically accurate projection)
-    if (STATE.showShadow){
-      drawUmbraPenumbra(cx, cy, data.cuUmbra, data.cuPenumbra, sunPx*0.12);
-    }
-    // guides & effects
-    if (document.querySelector('#guidesToggle')?.checked) drawGuides(cx, cy, sunPx, moonPx, data.moonCx, data.moonCy, data.cuUmbra, data.cuPenumbra);
-    drawDiamondRing(cx, cy, sunPx, moonPx, data.moonCx, data.moonCy, data.flux);
-  } else {
-    // Lunar mode: show Earth at left-bottom and shadow onto moon path
-    // Place Earth slightly left/down for composition
-    const earthPx = Math.max(48, data.sunPx * 0.35);
-    const ex = cx - cx*0.25, ey = cy + cy*0.1;
-    // draw sun further right-upper for illumination visual
-    drawSun(cx + cx*0.35, cy - cy*0.3, data.sunPx * 0.55);
-    // draw Earth with tilt & rotation (simulate terminator)
-    drawEarth(ex, ey, earthPx, STATE.earthTiltDeg, (STATE.earthRotationRateDegPerDay * STATE.t * 24) % 360);
-    // compute umbra/penumbra at moon distance and draw them centered on Earth
-    if (STATE.showShadow){
-      drawUmbraPenumbra(ex, ey, data.cuUmbra, data.cuPenumbra, earthPx);
-    }
-    // moon path - cross through shadow horizontally
-    const travel = Math.max(220, data.cuPenumbra * 2.3);
-    const moonx = ex - travel/2 + travel * STATE.t;
-    const moony = ey - 200 + (STATE.impact || 0) * 80;
-    drawMoon(moonx, moony, data.moonPx, 1.0);
-    // compute fractional umbra/penumbra overlap for moon
-    const dcenter = Math.hypot(moonx - ex, moony - ey);
-    const Au = circleIntersectionArea(data.moonPx, data.cuUmbra, dcenter);
-    const Ap = circleIntersectionArea(data.moonPx, data.cuPenumbra, dcenter);
-    const penOnly = Math.max(0, Ap - Au);
-    const umbra_frac = Au / (Math.PI * data.moonPx * data.moonPx);
-    const pen_frac = penOnly / (Math.PI * data.moonPx * data.moonPx);
-    // shade moon if inside umbra/penumbra
-    if (Au > 0){
-      // compute darkness multiplier
-      const darkness = clamp(0.95 * umbra_frac + 0.5 * pen_frac, 0, 0.95);
-      skyCtx.beginPath();
-      skyCtx.fillStyle = `rgba(30,10,10,${darkness})`;
-      skyCtx.arc(moonx, moony, data.moonPx, 0, Math.PI*2);
-      skyCtx.fill();
-      // reddening effect for lunar eclipse
-      skyCtx.beginPath();
-      skyCtx.fillStyle = `rgba(90,16,10,${0.45 * umbra_frac})`;
-      skyCtx.arc(moonx, moony, data.moonPx*0.95, 0, Math.PI*2);
-      skyCtx.fill();
-    } else if (penOnly > 0) {
-      // faint dimming
-      skyCtx.beginPath();
-      skyCtx.fillStyle = `rgba(0,0,0,${0.2 * pen_frac})`;
-      skyCtx.arc(moonx, moony, data.moonPx, 0, Math.PI*2);
-      skyCtx.fill();
-    }
-    // annotate readouts
-    skyCtx.fillStyle = '#222';
-    skyCtx.font = '14px "Segoe UI", Roboto, Arial';
-    skyCtx.fillText(`Umbra: ${(umbra_frac*100).toFixed(2)}%  Penumbra: ${(pen_frac*100).toFixed(2)}%`, 14, 18);
-
-    // push series for plotting
-    STATE.umbraSeries.push({t: STATE.t, umbra: umbra_frac, pen: pen_frac});
-  }
-
-  // Always display flux for solar mode
-  if (UI.modeSelect.value === 'solar'){
-    // push flux data
-    STATE.fluxSeries.push({t: STATE.t, flux: data.flux});
-    // draw flux plot/update
-  }
-  renderPlots();
-}
-
-/* -------------------------
-   Plot Rendering
-   ------------------------- */
+/* ---------- Plots ---------- */
 function renderPlots(){
-  // Flux plot
-  const ctx = fluxCtx; const W = fluxCanvas.clientWidth, H = fluxCanvas.clientHeight;
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle = '#fffdf4'; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle = '#666'; ctx.font = '12px Arial';
-  ctx.fillText('Flux (brightness) vs Time', 8, 14);
+  // flux plot
+  const w = fluxCanvas.clientWidth, h = fluxCanvas.clientHeight;
+  fluxCtx.clearRect(0,0,w,h);
+  fluxCtx.fillStyle = '#fffdf4'; fluxCtx.fillRect(0,0,w,h);
+  fluxCtx.fillStyle = '#666'; fluxCtx.font = '12px Arial';
+  fluxCtx.fillText('Flux vs Time', 8, 14);
   if (STATE.fluxSeries.length > 1){
-    ctx.beginPath();
-    ctx.strokeStyle = '#f6b100'; ctx.lineWidth = 2;
+    fluxCtx.beginPath(); fluxCtx.lineWidth=2; fluxCtx.strokeStyle='#f6b100';
     const n = STATE.fluxSeries.length;
     const t0 = STATE.fluxSeries[0].t, t1 = STATE.fluxSeries[n-1].t || 1;
-    const sx = t => 8 + ((t - t0) / Math.max(1e-9, t1 - t0)) * (W - 16);
-    const sy = f => 18 + (1 - f) * (H - 28);
-    ctx.moveTo(sx(STATE.fluxSeries[0].t), sy(STATE.fluxSeries[0].flux));
-    for (let i=1;i<n;i++) ctx.lineTo(sx(STATE.fluxSeries[i].t), sy(STATE.fluxSeries[i].flux));
-    ctx.stroke();
+    const sx = t => 8 + ((t - t0) / Math.max(1e-9, t1 - t0)) * (w - 16);
+    const sy = f => 18 + (1 - f) * (h - 28);
+    fluxCtx.moveTo(sx(STATE.fluxSeries[0].t), sy(STATE.fluxSeries[0].flux));
+    for (let i=1;i<n;i++) fluxCtx.lineTo(sx(STATE.fluxSeries[i].t), sy(STATE.fluxSeries[i].flux));
+    fluxCtx.stroke();
   } else {
-    ctx.fillStyle = '#999'; ctx.fillText('Run simulation in Solar mode to see light curve', 10, H/2);
+    fluxCtx.fillStyle = '#999'; fluxCtx.fillText('Run Solar mode to generate light curve', 12, h/2);
   }
 
-  // Umbra/Penumbra plot
-  const ctx2 = umbraCtx; const W2 = umbraCanvas.clientWidth, H2 = umbraCanvas.clientHeight;
-  ctx2.clearRect(0,0,W2,H2);
-  ctx2.fillStyle = '#fffdf4'; ctx2.fillRect(0,0,W2,H2);
-  ctx2.fillStyle = '#666'; ctx2.font = '12px Arial';
-  ctx2.fillText('Umbra & Penumbra fractions', 8, 14);
-  if (STATE.umbraSeries.length > 1){
-    const n = STATE.umbraSeries.length;
-    const t0 = STATE.umbraSeries[0].t, t1 = STATE.umbraSeries[n-1].t || 1;
-    const sx = t => 8 + ((t - t0) / Math.max(1e-9, t1 - t0)) * (W2 - 16);
-    const sy = v => 18 + (1 - v) * (H2 - 28);
+  // fraction plot
+  const w2 = fracCanvas.clientWidth, h2 = fracCanvas.clientHeight;
+  fracCtx.clearRect(0,0,w2,h2);
+  fracCtx.fillStyle = '#fffdf4'; fracCtx.fillRect(0,0,w2,h2);
+  fracCtx.fillStyle = '#666'; fracCtx.font = '12px Arial';
+  fracCtx.fillText('Umbra & Penumbra fractions (Lunar)', 8, 14);
+  if (STATE.fracSeries.length > 1){
+    const n = STATE.fracSeries.length;
+    const t0 = STATE.fracSeries[0].t, t1 = STATE.fracSeries[n-1].t || 1;
+    const sx = t => 8 + ((t - t0) / Math.max(1e-9,t1 - t0)) * (w2 - 16);
+    const sy = v => 18 + (1 - v) * (h2 - 28);
     // umbra
-    ctx2.beginPath(); ctx2.strokeStyle = '#c94a4a'; ctx2.lineWidth = 2;
-    ctx2.moveTo(sx(STATE.umbraSeries[0].t), sy(STATE.umbraSeries[0].umbra));
-    for (let i=1;i<n;i++) ctx2.lineTo(sx(STATE.umbraSeries[i].t), sy(STATE.umbraSeries[i].umbra));
-    ctx2.stroke();
+    fracCtx.beginPath(); fracCtx.lineWidth = 2; fracCtx.strokeStyle = '#c94a4a';
+    fracCtx.moveTo(sx(STATE.fracSeries[0].t), sy(STATE.fracSeries[0].umbra));
+    for (let i=1;i<n;i++) fracCtx.lineTo(sx(STATE.fracSeries[i].t), sy(STATE.fracSeries[i].umbra));
+    fracCtx.stroke();
     // penumbra
-    ctx2.beginPath(); ctx2.strokeStyle = '#f08c2f'; ctx2.lineWidth = 2;
-    ctx2.moveTo(sx(STATE.umbraSeries[0].t), sy(STATE.umbraSeries[0].pen));
-    for (let i=1;i<n;i++) ctx2.lineTo(sx(STATE.umbraSeries[i].t), sy(STATE.umbraSeries[i].pen));
-    ctx2.stroke();
+    fracCtx.beginPath(); fracCtx.lineWidth = 2; fracCtx.strokeStyle = '#f08c2f';
+    fracCtx.moveTo(sx(STATE.fracSeries[0].t), sy(STATE.fracSeries[0].pen));
+    for (let i=1;i<n;i++) fracCtx.lineTo(sx(STATE.fracSeries[i].t), sy(STATE.fracSeries[i].pen));
+    fracCtx.stroke();
   } else {
-    ctx2.fillStyle = '#999'; ctx2.fillText('Run simulation in Lunar mode to see shadows', 10, H2/2);
+    fracCtx.fillStyle = '#999'; fracCtx.fillText('Run Lunar mode to compute shadow fractions', 12, h2/2);
   }
 }
 
-/* -------------------------
-   Time stepping & animation
-   ------------------------- */
-let lastTime = now();
-function loop(timestamp){
+/* ---------- Animation loop ---------- */
+let lastAnim = now();
+function loop(ts){
   if (!STATE.running) return;
-  const current = now();
-  const dt = (current - lastTime) / 1000.0; // seconds elapsed
-  lastTime = current;
-  // advance model based on dt
-  stepSimulation(dt);
-  drawFrame();
-  if (STATE.t >= 1){ STATE.running = false; UI.status.textContent='Status: Finished'; return; }
+  const cur = now();
+  const dt = (cur - lastAnim) / 1000;
+  lastAnim = cur;
+  step(dt);
+  computeAndDraw();
+  if (STATE.t >= 1){ STATE.running=false; UI.status.textContent='Status: Finished'; return; }
   requestAnimationFrame(loop);
 }
 
-/* -------------------------
-   Step once helper
-   ------------------------- */
-function stepOnce(){
-  const incr = STATE.dtBase * STATE.speed * 60; // advance slightly
-  STATE.t = clamp(STATE.t + incr, 0, 1);
-  drawFrame();
-  UI.status.textContent = 'Status: Stepped';
+/* ---------- Reset, presets, export ---------- */
+function resetData(){ STATE.fluxSeries.length = 0; STATE.fracSeries.length = 0; }
+function reset(){
+  STATE.running = false; STATE.t = 0; resetData(); UI.status.textContent='Status: Ready'; computeAndDraw();
 }
-
-/* -------------------------
-   Reset & presets
-   ------------------------- */
-function resetSimulation(){
-  STATE.running = false;
-  STATE.t = 0;
-  STATE.fluxSeries.length = 0;
-  STATE.umbraSeries.length = 0;
-  UI.status.textContent = 'Status: Ready';
-  drawFrame();
-}
-
 function applyPreset(name){
-  if (name === 'typical'){
-    UI.modeSelect.value = 'solar';
-    STATE.moonDistScale = 1.02;
-    STATE.moonSizeScale = 1.0;
-    STATE.sunDistScale = 1.0;
-    STATE.speed = 1.0;
-  } else if (name === 'annular'){
-    UI.modeSelect.value = 'solar';
-    STATE.moonDistScale = 1.25;
-    STATE.moonSizeScale = 0.92;
-    STATE.sunDistScale = 1.005;
-    STATE.speed = 1.0;
-  } else if (name === 'lunar'){
-    UI.modeSelect.value = 'lunar';
-    STATE.moonDistScale = 1.0;
-    STATE.moonSizeScale = 1.0;
-    STATE.sunDistScale = 1.0;
-    STATE.speed = 0.8;
+  if (name==='typical'){
+    UI.mode.value='solar'; STATE.moonDistScale=1.02; STATE.moonSizeScale=1; STATE.sunDistScale=1; STATE.speed=1; UI.speed.value=1;
+  } else if (name==='annular'){
+    UI.mode.value='solar'; STATE.moonDistScale=1.25; STATE.moonSizeScale=0.92; STATE.sunDistScale=1.005; STATE.speed=1;
+  } else if (name==='lunar'){
+    UI.mode.value='lunar'; STATE.moonDistScale=1; STATE.moonSizeScale=1; STATE.sunDistScale=1; STATE.speed=0.8;
   }
-  updateUIFields();
-  resetSimulation();
-  UI.status.textContent = 'Preset: '+name;
+  updateUIDisplays();
+  reset();
 }
-
-/* -------------------------
-   Export functions
-   ------------------------- */
-function exportSkyPNG(){
-  // create a link and download canvas as png
-  const url = skyCanvas.toDataURL('image/png');
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `eclipse_sky_${UI.modeSelect.value}_${Date.now()}.png`;
-  a.click();
-}
-
 function exportCSV(){
-  if (UI.modeSelect.value === 'solar'){
-    if (STATE.fluxSeries.length === 0){ UI.status.textContent = 'No flux data to export'; return; }
-    let csv = 'time,flux\n';
-    for (const p of STATE.fluxSeries) csv += `${p.t.toFixed(6)},${p.flux.toFixed(6)}\n`;
-    const blob = new Blob([csv], {type:'text/csv'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `flux_${Date.now()}.csv`; a.click();
-    URL.revokeObjectURL(url);
-    UI.status.textContent = 'CSV exported';
+  if (UI.mode.value==='solar'){
+    if (STATE.fluxSeries.length===0){ UI.status.textContent='No flux data'; return; }
+    let csv = 't,flux\n';
+    STATE.fluxSeries.forEach(p=> csv += `${p.t.toFixed(6)},${p.flux.toFixed(6)}\n`);
+    const blob = new Blob([csv],{type:'text/csv'}), url = URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='flux.csv'; a.click(); URL.revokeObjectURL(url);
+    UI.status.textContent='CSV exported';
   } else {
-    if (STATE.umbraSeries.length === 0){ UI.status.textContent = 'No umbra data to export'; return; }
-    let csv = 'time,umbra,penumbra\n';
-    for (const p of STATE.umbraSeries) csv += `${p.t.toFixed(6)},${p.umbra.toFixed(6)},${p.pen.toFixed(6)}\n`;
-    const blob = new Blob([csv], {type:'text/csv'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `umbra_${Date.now()}.csv`; a.click();
-    URL.revokeObjectURL(url);
-    UI.status.textContent = 'CSV exported';
+    if (STATE.fracSeries.length===0){ UI.status.textContent='No fraction data'; return; }
+    let csv = 't,umbra,penumbra\n';
+    STATE.fracSeries.forEach(p=> csv += `${p.t.toFixed(6)},${p.umbra.toFixed(6)},${p.pen.toFixed(6)}\n`);
+    const blob = new Blob([csv],{type:'text/csv'}), url = URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='umbra.csv'; a.click(); URL.revokeObjectURL(url);
+    UI.status.textContent='CSV exported';
   }
 }
 
-/* -------------------------
-   Initialization & first draw
-   ------------------------- */
-function init(){
-  // initialize UI derived values
-  updateUIFields();
-  // attach keyboard shortcuts for convenience
-  window.addEventListener('keydown', (e)=>{
-    if (e.key === ' ') { // toggle start/pause
-      STATE.running = !STATE.running;
-      if (STATE.running){ lastTime = now(); requestAnimationFrame(loop); UI.status.textContent='Status: Running'; }
-      else UI.status.textContent='Status: Paused';
-    } else if (e.key === 'r') resetSimulation();
-  });
-  // apply default preset
-  applyPreset('typical');
-  drawFrame();
+/* ---------- Initialization ---------- */
+function computeMapping(){ // separate (kept repeated helper)
+  const sunDist_km = PHY.D_earth_sun * STATE.sunDistScale;
+  const moonDist_km = PHY.D_earth_moon * STATE.moonDistScale;
+  const alpha_sun = angularRadius(PHY.R_sun, sunDist_km);
+  const alpha_moon = angularRadius(PHY.R_moon * STATE.moonSizeScale, moonDist_km);
+  const canvasMin = Math.min(skyCanvas.clientWidth, skyCanvas.clientHeight);
+  const targetSunPx = canvasMin * 0.30;
+  const pxPerRad = targetSunPx / alpha_sun;
+  const sunPx = alpha_sun * pxPerRad;
+  const moonPx = alpha_moon * pxPerRad;
+  return { sunPx, moonPx, pxPerRad, sunDist_km, moonDist_km };
 }
-init();
 
-/* expose internal state for debugging (console) */
-window.ECLIPSE_ENGINE = { STATE, PHY, computeFrameData, drawFrame, resetSimulation, exportSkyPNG, exportCSV };
+function drawOnce(){
+  lastAnim = now();
+  computeAndDraw();
+}
+function updateUIDisplays(){ // ensure UI reflects state
+  UI.speedVal.textContent = STATE.speed.toFixed(2)+'x';
+  UI.moonDistVal.textContent = STATE.moonDistScale.toFixed(2);
+  UI.sunDistVal.textContent = STATE.sunDistScale.toFixed(3)+' AU';
+  UI.moonSizeVal.textContent = STATE.moonSizeScale.toFixed(2)+'x';
+  UI.earthTiltVal.textContent = STATE.earthTiltDeg.toFixed(2)+'°';
+  UI.earthRotVal.textContent = STATE.earthRotDegPerStep.toFixed(1)+'°/step';
+  UI.impactVal.textContent = STATE.impact.toFixed(2);
+}
+updateUIDisplays();
+
+/* initial draw */
+computeAndDraw();
+UI.status.textContent='Status: Ready';
+
+/* expose for debugging if needed */
+window.ECLIPSE_SIM = {STATE, PHY, computeMapping, computeAndDraw, reset};
 
 </script>
 </body>
