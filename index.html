@@ -3,201 +3,220 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eclipse Simulation – Solar & Lunar</title>
+<title>Solar & Lunar Eclipse Simulator</title>
 <style>
 body {
   margin: 0;
-  background: white;
-  font-family: 'Poppins', sans-serif;
-  text-align: center;
+  background: #fffdf5;
   color: #222;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 h1 {
-  margin-top: 15px;
-  color: #f5b700;
-  font-size: 28px;
+  color: #f1b400;
+  margin-top: 20px;
+  font-size: 2em;
+  letter-spacing: 1px;
 }
 canvas {
-  display: block;
-  margin: 20px auto;
-  background: radial-gradient(circle at center, #fff 40%, #f9f9f9 100%);
-  border: 1px solid #ccc;
+  border: 1px solid #f1b400;
   border-radius: 10px;
+  background: radial-gradient(circle at center, #fefefe 70%, #faf6e9 100%);
+  margin: 20px 0;
 }
 .controls {
-  margin: 10px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
 }
-button, select {
-  margin: 5px;
-  padding: 8px 14px;
-  border: none;
+button, select, input[type=range] {
+  background: #fff;
+  border: 1px solid #f1b400;
   border-radius: 8px;
-  background-color: #f5b700;
-  color: white;
+  padding: 8px 14px;
+  color: #222;
+  font-weight: 500;
   cursor: pointer;
-  transition: 0.2s;
-  font-size: 14px;
+  transition: all 0.2s ease;
 }
 button:hover, select:hover {
-  background-color: #ffcb00;
+  background: #f1b400;
+  color: #fff;
 }
-.info {
-  margin-top: 8px;
-  font-size: 14px;
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 5px;
+}
+label {
+  font-size: 0.8em;
+  color: #555;
+}
+#info {
+  max-width: 700px;
+  text-align: center;
+  font-size: 0.9em;
+  color: #333;
+  margin-top: 10px;
 }
 </style>
 </head>
 <body>
+<h1>Solar & Lunar Eclipse Interactive Simulator</h1>
 
-<h1>🌞 Eclipse Simulation – Solar & Lunar 🌑</h1>
+<canvas id="simCanvas" width="800" height="500"></canvas>
 
 <div class="controls">
   <select id="mode">
     <option value="solar">Solar Eclipse</option>
     <option value="lunar">Lunar Eclipse</option>
   </select>
-  <button id="startBtn">Start</button>
-  <button id="pauseBtn">Pause</button>
-  <button id="resetBtn">Reset</button>
-  <label>Speed:</label>
-  <input id="speedSlider" type="range" min="0.5" max="3" step="0.1" value="1">
+  <button id="startBtn">▶ Start</button>
+  <button id="pauseBtn">⏸ Pause</button>
+  <button id="resetBtn">⟲ Reset</button>
 </div>
 
-<canvas id="canvas" width="700" height="500"></canvas>
+<div class="controls">
+  <div class="slider-container">
+    <label>Speed</label>
+    <input type="range" id="speedSlider" min="1" max="10" value="3">
+  </div>
+  <div class="slider-container">
+    <label>Moon Distance</label>
+    <input type="range" id="moonDist" min="250" max="450" value="350">
+  </div>
+  <div class="slider-container">
+    <label>Sun Radius</label>
+    <input type="range" id="sunRadius" min="60" max="100" value="80">
+  </div>
+</div>
 
-<div class="info" id="infoText"></div>
+<div id="info">Use the sliders to adjust simulation parameters. Switch between Solar and Lunar Eclipse modes. Observe the Earth's shadow, umbra, penumbra, and the ring of fire / diamond ring effect during totality.</div>
 
 <script>
-const canvas = document.getElementById('canvas');
+const canvas = document.getElementById('simCanvas');
 const ctx = canvas.getContext('2d');
-const modeSelect = document.getElementById('mode');
-const infoText = document.getElementById('infoText');
-const startBtn = document.getElementById('startBtn');
-const pauseBtn = document.getElementById('pauseBtn');
-const resetBtn = document.getElementById('resetBtn');
-const speedSlider = document.getElementById('speedSlider');
 
-let mode = 'solar';
 let running = false;
 let t = 0;
-let speed = 1;
+let speed = 3;
+let mode = 'solar';
+let moonDist = 350;
+let sunRadius = 80;
 
-modeSelect.onchange = () => { mode = modeSelect.value; resetSim(); };
-speedSlider.oninput = () => { speed = parseFloat(speedSlider.value); };
+document.getElementById('mode').onchange = e => mode = e.target.value;
+document.getElementById('startBtn').onclick = () => running = true;
+document.getElementById('pauseBtn').onclick = () => running = false;
+document.getElementById('resetBtn').onclick = () => { t = 0; running = false; };
+document.getElementById('speedSlider').oninput = e => speed = +e.target.value;
+document.getElementById('moonDist').oninput = e => moonDist = +e.target.value;
+document.getElementById('sunRadius').oninput = e => sunRadius = +e.target.value;
 
-startBtn.onclick = () => { running = true; };
-pauseBtn.onclick = () => { running = false; };
-resetBtn.onclick = () => { resetSim(); };
-
-function resetSim() {
-  running = false;
-  t = 0;
-  infoText.innerText = '';
-  draw();
-}
-
-function circleOverlapArea(r1, r2, d) {
-  if (d >= r1 + r2) return 0;
-  if (d <= Math.abs(r1 - r2)) return Math.PI * Math.min(r1, r2)**2;
-  const a1 = r1*r1*Math.acos((d*d + r1*r1 - r2*r2)/(2*d*r1));
-  const a2 = r2*r2*Math.acos((d*d + r2*r2 - r1*r1)/(2*d*r2));
-  const a3 = 0.5*Math.sqrt((-d+r1+r2)*(d+r1-r2)*(d-r1+r2)*(d+r1+r2));
-  return a1 + a2 - a3;
-}
-
-function drawSolar() {
-  const cx = canvas.width/2, cy = canvas.height/2;
-  const rSun = 120, rMoon = 40;
-  const maxDist = rSun + rMoon + 40;
-  const dist = (Math.cos(t) * maxDist);
-  const moonX = cx + dist, moonY = cy;
-
-  ctx.fillStyle = 'white';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  // Sun (with gradient + limb darkening)
-  const grad = ctx.createRadialGradient(cx, cy, rSun*0.2, cx, cy, rSun);
-  grad.addColorStop(0, '#fffcc2');
-  grad.addColorStop(1, '#f5b700');
+function drawSun(x, y, r) {
+  const grad = ctx.createRadialGradient(x, y, r*0.2, x, y, r);
+  grad.addColorStop(0, '#fff7c0');
+  grad.addColorStop(0.8, '#f1b400');
+  grad.addColorStop(1, '#d48b00');
   ctx.fillStyle = grad;
-  ctx.beginPath(); ctx.arc(cx, cy, rSun, 0, 2*Math.PI); ctx.fill();
-
-  // Moon
-  ctx.fillStyle = '#444';
-  ctx.beginPath(); ctx.arc(moonX, moonY, rMoon, 0, 2*Math.PI); ctx.fill();
-
-  // Overlap fraction
-  const d = Math.abs(cx - moonX);
-  const overlap = circleOverlapArea(rSun, rMoon, d);
-  const fraction = overlap / (Math.PI*rSun*rSun);
-  let phaseText = '';
-
-  if (fraction === 0) phaseText = 'No Eclipse';
-  else if (fraction < 0.3) phaseText = 'Partial Eclipse';
-  else if (fraction < 0.95) phaseText = 'Deep Partial';
-  else if (rMoon < rSun * 0.98) phaseText = 'Annular Eclipse (Ring of Fire)';
-  else if (fraction >= 0.95 && rMoon >= rSun*0.98) phaseText = 'Total Eclipse (Diamond Ring)';
-  else phaseText = 'Eclipse Phase';
-
-  infoText.innerText = `🌞 Solar Eclipse | Obscured: ${(fraction*100).toFixed(1)}% | Phase: ${phaseText}`;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, 2*Math.PI);
+  ctx.fill();
 }
 
-function drawLunar() {
-  const cx = canvas.width/2, cy = canvas.height/2;
-  const rEarth = 80, rMoon = 40, rSun = 180;
-  const shadowLength = 350; 
-  const umbraRadius = rEarth - (rSun - rEarth) * (rEarth / shadowLength);
-  const penumbraRadius = umbraRadius + 50;
-  const moonDist = Math.cos(t) * (penumbraRadius + rMoon + 30);
-  const moonX = cx + moonDist, moonY = cy;
-
-  ctx.fillStyle = 'white';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  // Penumbra shadow
-  ctx.fillStyle = 'rgba(255,200,0,0.1)';
-  ctx.beginPath(); ctx.arc(cx, cy, penumbraRadius, 0, 2*Math.PI); ctx.fill();
-
-  // Umbra shadow
-  ctx.fillStyle = 'rgba(100,100,100,0.25)';
-  ctx.beginPath(); ctx.arc(cx, cy, umbraRadius, 0, 2*Math.PI); ctx.fill();
-
-  // Earth
-  ctx.fillStyle = '#2271b3';
-  ctx.beginPath(); ctx.arc(cx, cy, rEarth, 0, 2*Math.PI); ctx.fill();
-
-  // Moon
-  ctx.fillStyle = '#aaa';
-  ctx.beginPath(); ctx.arc(moonX, moonY, rMoon, 0, 2*Math.PI); ctx.fill();
-
-  const d = Math.abs(cx - moonX);
-  const inUmbra = d < umbraRadius + rMoon;
-  const inPenu = d < penumbraRadius + rMoon && d >= umbraRadius + rMoon;
-
-  let phaseText = '';
-  if (d > penumbraRadius + rMoon) phaseText = 'No Eclipse';
-  else if (inPenu) phaseText = 'Partial Penumbral Eclipse';
-  else if (inUmbra && d > umbraRadius - rMoon) phaseText = 'Partial Umbra Eclipse';
-  else if (d <= umbraRadius - rMoon) phaseText = 'Total Lunar Eclipse';
-  else phaseText = 'Lunar Eclipse Phase';
-
-  infoText.innerText = `🌕 Lunar Eclipse | Shadow Distance: ${d.toFixed(1)} | Phase: ${phaseText}`;
+function drawEarth(x, y, r) {
+  const grad = ctx.createRadialGradient(x - r/3, y - r/3, r*0.2, x, y, r);
+  grad.addColorStop(0, '#bde0ff');
+  grad.addColorStop(1, '#004477');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, 2*Math.PI);
+  ctx.fill();
 }
 
-function draw() {
-  if (mode === 'solar') drawSolar();
-  else drawLunar();
+function drawMoon(x, y, r) {
+  const grad = ctx.createRadialGradient(x - r/2, y - r/2, r*0.2, x, y, r);
+  grad.addColorStop(0, '#eaeaea');
+  grad.addColorStop(1, '#a0a0a0');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, 2*Math.PI);
+  ctx.fill();
+}
+
+function drawUmbra(x, y, angle, len, baseR, tipR, color) {
+  ctx.beginPath();
+  ctx.moveTo(x - baseR, y);
+  ctx.lineTo(x - tipR, y - len);
+  ctx.lineTo(x + tipR, y - len);
+  ctx.lineTo(x + baseR, y);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.globalAlpha = 0.25;
+  ctx.fill();
+  ctx.globalAlpha = 1.0;
+}
+
+function drawLightCurve() {
+  const phase = Math.abs(Math.sin(t/50));
+  const flux = 1 - 0.9 * Math.exp(-10 * (phase - 0.5)**2);
+  ctx.fillStyle = "#f1b400";
+  ctx.fillRect(50, 450, flux*700, 10);
+  ctx.fillStyle = "#000";
+  ctx.fillText(`Relative Flux: ${(flux*100).toFixed(1)}%`, 320, 440);
+}
+
+function drawDiamondRing(x, y, sunR, moonR, sep) {
+  if (sep < Math.abs(sunR - moonR) + 2) {
+    ctx.beginPath();
+    ctx.arc(x + sunR * 0.6, y, 8, 0, 2*Math.PI);
+    ctx.fillStyle = "#fff4b2";
+    ctx.shadowBlur = 25;
+    ctx.shadowColor = "#ffeb80";
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+function simulateSolar() {
+  const cx = 400, cy = 250;
+  const sunR = sunRadius;
+  const moonR = sunR * 0.9;
+  const dx = Math.cos(t/100)*moonDist - 150;
+
+  drawSun(cx, cy, sunR);
+  drawMoon(cx + dx, cy, moonR);
+  drawDiamondRing(cx, cy, sunR, moonR, Math.abs(dx));
+  drawLightCurve();
+}
+
+function simulateLunar() {
+  const cx = 400, cy = 250;
+  const earthR = 60;
+  const moonR = 25;
+  const dist = 250;
+  const offset = Math.sin(t/100)*100;
+
+  drawSun(cx, cy + 200, 50);
+  drawUmbra(cx, cy, 0, dist, earthR, 20, '#000');
+  drawEarth(cx, cy, earthR);
+  drawMoon(cx + offset, cy - dist, moonR);
+  drawLightCurve();
 }
 
 function animate() {
-  if (running) {
-    t += 0.02 * speed;
-    draw();
-  }
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = "#222";
+  ctx.font = "14px Poppins";
+  if (mode === 'solar') simulateSolar();
+  else simulateLunar();
+  if (running) t += speed;
   requestAnimationFrame(animate);
 }
-
-draw();
 animate();
 </script>
 </body>
