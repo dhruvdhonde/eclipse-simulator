@@ -1,614 +1,774 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Eclipse Dynamics — Final (Single File)</title>
-<style>
-:root{
-  --bg:#fffdf7; --panel:#fffaf0; --accent:#f6b100; --muted:#666;
-  --glass: rgba(255,255,255,0.9);
-  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;background:var(--bg);color:#222}
-.container{max-width:1200px;margin:14px auto;padding:12px}
-.header{display:flex;justify-content:space-between;align-items:center}
-h1{margin:0;color:var(--accent);font-size:1.4rem}
-.subtitle{color:var(--muted);font-size:0.9rem}
-.layout{display:grid;grid-template-columns:360px 1fr;gap:12px;margin-top:12px}
-.panel{background:var(--panel);padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04)}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-.label{min-width:140px;color:var(--muted);font-size:0.9rem}
-.control{flex:1}
-button, select, input[type=range]{padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:#fff}
-button{background:linear-gradient(180deg,var(--accent),#e6a800);color:#111;font-weight:700;cursor:pointer;border:none}
-button.secondary{background:#fff;border:1px solid #eee;color:#444}
-.small{font-size:0.85rem;color:var(--muted)}
-.canvasWrap{display:flex;flex-direction:column;gap:10px}
-#sky{width:100%;height:640px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffef7);border:1px solid rgba(0,0,0,0.03)}
-.plots{display:flex;gap:10px}
-.plot{flex:1;height:160px;border-radius:8px;background:#fff;border:1px solid #efe7d0}
-.footer{margin-top:10px;font-size:0.85rem;color:var(--muted)}
-.badge{display:inline-block;padding:6px 8px;border-radius:8px;background:#fff8e1;color:#7a4d00;border:1px solid #f1e0a4;font-weight:600}
-@media(max-width:1000px){.layout{grid-template-columns:1fr} .label{min-width:110px}}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Solar Eclipse Simulation with Umbra and Penumbra + Ring of Fire</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #001020 10%, #000000 100%);
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    canvas { display:block; }
+    #viewFromEarth {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 220px;
+      height: 220px;
+      border: 2px solid white;
+      border-radius: 10px;
+      background: radial-gradient(circle at center, #000015 40%, #000000 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(255,255,255,0.2);
+    }
+    #viewFromEarth canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+    }
+    #label {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .control {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .control button {
+      background: rgba(255,255,255,0.08);
+      color: white;
+      border: 2px solid white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    .control button:hover { background: rgba(255,255,255,0.18); }
+    .tog {
+      background: rgba(255,255,255,0.04);
+      border-style: dashed;
+    }
+    #hint {
+      position: absolute;
+      top: 58px;
+      left: 10px;
+      font-size: 13px;
+      background: rgba(0,0,0,0.35);
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+    .modeSeg {
+      display: flex;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid white;
+    }
+    .modeSeg button { margin: 0; border: none; border-right: 1px solid rgba(255,255,255,0.08); }
+    .modeSeg button.active { background: rgba(255,255,255,0.18); }
+  </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <div>
-      <h1>Eclipse Dynamics — Final</h1>
-      <div class="subtitle">Physics-first Solar & Lunar eclipse simulator — Earth, Umbra, Penumbra, Ring & Diamond, Light Curves</div>
+  <div id="label">Solar Eclipse Simulation</div>
+  <div class="control">
+    <button id="pauseButton">Pause</button>
+    <div class="modeSeg">
+      <button id="annularMode" class="active">Annular</button>
+      <button id="totalMode">Total</button>
     </div>
-    <div style="text-align:right">
-      <div class="badge">White • Yellow Minimal</div>
-    </div>
+    <button id="ringToggle" class="tog">Show Ring of Fire: Off</button>
+    <button id="autoPauseToggle" class="tog">Auto-Pause at Ring: Off</button>
+  </div>
+  <div id="hint">Tip: Choose <strong>Total</strong> to simulate totality (moon covers the Sun in the inset). Choose <strong>Annular</strong> to see the ring of fire. Use <strong>Auto-Pause</strong> to stop at the annular/total moment.</div>
+  <canvas id="mainCanvas"></canvas>
+  <div id="viewFromEarth">
+    <canvas id="earthView"></canvas>
   </div>
 
-  <div class="layout">
-    <div class="panel">
-      <div class="row">
-        <div class="label">Mode</div>
-        <div class="control"><select id="mode"><option value="solar">Solar Eclipse</option><option value="lunar">Lunar Eclipse</option></select></div>
-      </div>
+  <script>
+    // ====== Setup & Hi-DPI scaling ======
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const earthViewCanvas = document.getElementById('earthView');
+    const earthCtx = earthViewCanvas.getContext('2d');
 
-      <div class="row">
-        <div class="label">Run</div>
-        <div style="display:flex;gap:8px">
-          <button id="start">Start</button>
-          <button id="pause" class="secondary">Pause</button>
-          <button id="reset" class="secondary">Reset</button>
-        </div>
-      </div>
+    const pauseButton = document.getElementById('pauseButton');
+    let paused = false;
+    pauseButton.addEventListener('click', () => {
+      paused = !paused;
+      pauseButton.textContent = paused ? 'Resume' : 'Pause';
+      ringAutoPaused = false;
+    });
 
-      <div class="row">
-        <div class="label">Speed</div>
-        <div class="control"><input id="speed" type="range" min="0.1" max="6" step="0.1" value="1"></div>
-        <div class="small" id="speedVal">1.0x</div>
-      </div>
+    // Mode controls: annular or totality
+    const annularModeBtn = document.getElementById('annularMode');
+    const totalModeBtn = document.getElementById('totalMode');
+    let mode = 'annular'; // 'annular' or 'total'
 
-      <div class="row">
-        <div class="label">Moon distance</div>
-        <div class="control"><input id="moonDist" type="range" min="0.8" max="1.3" step="0.01" value="1"></div>
-        <div class="small" id="moonDistVal">1.00</div>
-      </div>
+    function setMode(m) {
+      mode = m;
+      annularModeBtn.classList.toggle('active', m === 'annular');
+      totalModeBtn.classList.toggle('active', m === 'total');
 
-      <div class="row">
-        <div class="label">Sun–Earth (AU)</div>
-        <div class="control"><input id="sunDist" type="range" min="0.98" max="1.02" step="0.0005" value="1"></div>
-        <div class="small" id="sunDistVal">1.000 AU</div>
-      </div>
-
-      <div class="row">
-        <div class="label">Moon size</div>
-        <div class="control"><input id="moonSize" type="range" min="0.6" max="1.4" step="0.01" value="1"></div>
-        <div class="small" id="moonSizeVal">1.00x</div>
-      </div>
-
-      <div class="row">
-        <div class="label">Impact (offset)</div>
-        <div class="control"><input id="impact" type="range" min="-1" max="1" step="0.01" value="0"></div>
-        <div class="small" id="impactVal">0.00</div>
-      </div>
-
-      <div class="row">
-        <div class="label">Earth tilt (°)</div>
-        <div class="control"><input id="tilt" type="range" min="0" max="30" step="0.1" value="23.44"></div>
-        <div class="small" id="tiltVal">23.44°</div>
-      </div>
-
-      <div class="row">
-        <div class="label">Earth rotation (°/step)</div>
-        <div class="control"><input id="erot" type="range" min="0" max="30" step="0.5" value="2"></div>
-        <div class="small" id="erotVal">2°</div>
-      </div>
-
-      <div class="row">
-        <div class="label">Limb darkening</div>
-        <div class="control"><label><input id="limb" type="checkbox" checked> Enabled</label></div>
-      </div>
-
-      <div class="row">
-        <div class="label">Show guides</div>
-        <div class="control"><label><input id="guides" type="checkbox"> Guides</label></div>
-      </div>
-
-      <div class="row">
-        <div class="label">Diamond ring</div>
-        <div class="control"><label><input id="diamond" type="checkbox" checked> Show</label></div>
-      </div>
-
-      <div class="row">
-        <div class="label">Ring of fire</div>
-        <div class="control"><label><input id="ring" type="checkbox" checked> Show</label></div>
-      </div>
-
-      <div class="row">
-        <div class="label">Export</div>
-        <div style="display:flex;gap:8px">
-          <button id="exportPng" class="secondary">PNG</button>
-          <button id="exportCsv" class="secondary">CSV</button>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="label">Presets</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="secondary preset" data-preset="total">Total</button>
-          <button class="secondary preset" data-preset="annular">Annular</button>
-          <button class="secondary preset" data-preset="lunar">Lunar</button>
-        </div>
-      </div>
-
-      <div class="small">Tip: Use Moon distance to move between total and annular eclipses. Pause to inspect geometry.</div>
-    </div>
-
-    <div class="panel canvasWrap">
-      <canvas id="sky"></canvas>
-      <div class="plots">
-        <canvas id="flux" class="plot"></canvas>
-        <canvas id="fractions" class="plot"></canvas>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:8px">
-        <div class="small">Sky-plane center • Light curve (left) • Umbra/Penumbra (right)</div>
-        <div id="status" class="small">Status: Ready</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer panel">
-    <div style="font-weight:700">About</div>
-    <div class="small">This simulation computes angular radii α = arctan(R/d), projects disks in the observer sky plane, computes circle-circle overlap for obscuration, and uses similar triangles to compute umbra/penumbra radii at the Moon distance. The visualization includes limb darkening, ring-of-fire and diamond ring phenomena. All computation is client-side.</div>
-  </div>
-</div>
-
-<script>
-/* ===========================
-   Final robust eclipse simulator
-   =========================== */
-
-/* ---------- Helpers ---------- */
-function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-function nowMs(){ return performance.now(); }
-function fmt(v,d=3){ return Number.parseFloat(v).toFixed(d); }
-
-/* ---------- Canvas setup ---------- */
-const canvas = document.getElementById('sky');
-const ctx = canvas.getContext('2d');
-const fluxCanvas = document.getElementById('flux');
-const fluxCtx = fluxCanvas.getContext('2d');
-const fracCanvas = document.getElementById('fractions');
-const fracCtx = fracCanvas.getContext('2d');
-
-function resizeAll(){
-  const ratio = Math.min(window.devicePixelRatio || 1, 2);
-  function fit(c){
-    const w = c.clientWidth || c.parentElement.clientWidth;
-    const h = c.clientHeight || c.parentElement.clientHeight || 600;
-    c.width = Math.max(1, Math.floor(w * ratio));
-    c.height = Math.max(1, Math.floor(h * ratio));
-    c.getContext('2d').setTransform(ratio,0,0,ratio,0,0);
-  }
-  fit(canvas); fit(fluxCanvas); fit(fracCanvas);
-}
-window.addEventListener('resize', ()=>{ resizeAll(); drawOnce(); });
-resizeAll();
-
-/* ---------- Physical constants ---------- */
-const PHY = {
-  R_sun: 695700.0,
-  R_earth: 6371.0,
-  R_moon: 1737.4,
-  D_earth_sun: 149597870.0,
-  D_earth_moon: 384400.0
-};
-
-/* ---------- UI references ---------- */
-const UI = {
-  mode: document.getElementById('mode'),
-  start: document.getElementById('start'),
-  pause: document.getElementById('pause'),
-  reset: document.getElementById('reset'),
-  speed: document.getElementById('speed'),
-  speedVal: document.getElementById('speedVal'),
-  moonDist: document.getElementById('moonDist'),
-  moonDistVal: document.getElementById('moonDistVal'),
-  sunDist: document.getElementById('sunDist'),
-  sunDistVal: document.getElementById('sunDistVal'),
-  moonSize: document.getElementById('moonSize'),
-  moonSizeVal: document.getElementById('moonSizeVal'),
-  impact: document.getElementById('impact'),
-  impactVal: document.getElementById('impactVal'),
-  tilt: document.getElementById('tilt'),
-  tiltVal: document.getElementById('tiltVal'),
-  erot: document.getElementById('erot'),
-  erotVal: document.getElementById('erotVal'),
-  limb: document.getElementById('limb'),
-  guides: document.getElementById('guides'),
-  diamond: document.getElementById('diamond'),
-  ring: document.getElementById('ring'),
-  exportPng: document.getElementById('exportPng'),
-  exportCsv: document.getElementById('exportCsv'),
-  presets: document.querySelectorAll('.preset'),
-  status: document.getElementById('status')
-};
-
-/* ---------- Simulation state ---------- */
-const STATE = {
-  running: false,
-  t: 0, // normalized 0..1
-  dtBase: 0.0010,
-  speed: parseFloat(UI.speed.value),
-  moonDistScale: parseFloat(UI.moonDist.value),
-  sunDistScale: parseFloat(UI.sunDist.value),
-  moonSizeScale: parseFloat(UI.moonSize.value),
-  impact: parseFloat(UI.impact.value),
-  tiltDeg: parseFloat(UI.tilt.value),
-  erotDeg: parseFloat(UI.erot.value),
-  limb: UI.limb.checked,
-  guides: UI.guides.checked,
-  showDiamond: UI.diamond.checked,
-  showRing: UI.ring.checked,
-  fluxSeries: [],
-  fracSeries: []
-};
-
-/* ---------- UI wiring ---------- */
-function updateUI(){
-  UI.speedVal.textContent = STATE.speed.toFixed(2)+'x';
-  UI.moonDistVal.textContent = STATE.moonDistScale.toFixed(2);
-  UI.sunDistVal.textContent = STATE.sunDistScale.toFixed(3)+' AU';
-  UI.moonSizeVal.textContent = STATE.moonSizeScale.toFixed(2)+'x';
-  UI.impactVal.textContent = STATE.impact.toFixed(2);
-  UI.tiltVal.textContent = STATE.tiltDeg.toFixed(2)+'°';
-  UI.erotVal.textContent = STATE.erotDeg.toFixed(1)+'°';
-}
-UI.speed.addEventListener('input', ()=>{ STATE.speed = parseFloat(UI.speed.value); updateUI(); });
-UI.moonDist.addEventListener('input', ()=>{ STATE.moonDistScale = parseFloat(UI.moonDist.value); updateUI(); resetData(); });
-UI.sunDist.addEventListener('input', ()=>{ STATE.sunDistScale = parseFloat(UI.sunDist.value); updateUI(); resetData(); });
-UI.moonSize.addEventListener('input', ()=>{ STATE.moonSizeScale = parseFloat(UI.moonSize.value); updateUI(); resetData(); });
-UI.impact.addEventListener('input', ()=>{ STATE.impact = parseFloat(UI.impact.value); updateUI(); resetData(); });
-UI.tilt.addEventListener('input', ()=>{ STATE.tiltDeg = parseFloat(UI.tilt.value); updateUI(); });
-UI.erot.addEventListener('input', ()=>{ STATE.erotDeg = parseFloat(UI.erot.value); updateUI(); });
-UI.limb.addEventListener('change', ()=> STATE.limb = UI.limb.checked);
-UI.guides.addEventListener('change', ()=> STATE.guides = UI.guides.checked);
-UI.diamond.addEventListener('change', ()=> STATE.showDiamond = UI.diamond.checked);
-UI.ring.addEventListener('change', ()=> STATE.showRing = UI.ring.checked);
-
-UI.start.addEventListener('click', ()=>{
-  if (!STATE.running){ STATE.running = true; lastTime = nowMs(); requestAnimationFrame(loop); UI.status.textContent='Status: Running'; }
-});
-UI.pause.addEventListener('click', ()=>{ STATE.running = false; UI.status.textContent='Status: Paused'; });
-UI.reset.addEventListener('click', ()=>{ resetAll(); UI.status.textContent='Status: Reset'; });
-
-UI.exportPng.addEventListener('click', ()=>{ const url = canvas.toDataURL('image/png'); const a=document.createElement('a'); a.href=url; a.download='eclipse.png'; a.click(); });
-UI.exportCsv.addEventListener('click', exportCSV);
-UI.presets.forEach(b=> b.addEventListener('click', ()=> applyPreset(b.dataset.preset)));
-
-/* ---------- Geometry functions ---------- */
-function angularRadiusRad(R_km, d_km){ return Math.atan2(R_km, d_km); }
-
-function umbraPenumbraAtDist(moonDist_km, sunDist_km){
-  const Re = PHY.R_earth, Rs = PHY.R_sun, Des = sunDist_km;
-  const L_umbra = (Re * Des) / Math.max(1e-9, (Rs - Re));
-  const r_umbra = Math.max(0, Re * (1 - moonDist_km / L_umbra));
-  const sun_ang = Math.atan2(Rs, Des);
-  const pen_extra = Math.tan(sun_ang) * moonDist_km;
-  const r_penumbra = r_umbra + pen_extra * 1.02;
-  return {L_umbra, r_umbra, r_penumbra};
-}
-
-function circleOverlapArea(r1,r2,d){
-  if (d >= r1 + r2) return 0;
-  if (d <= Math.abs(r1 - r2)) return Math.PI * Math.min(r1,r2)**2;
-  const r1sq = r1*r1, r2sq = r2*r2;
-  const alpha = Math.acos(clamp((d*d + r1sq - r2sq) / (2*d*r1), -1,1));
-  const beta  = Math.acos(clamp((d*d + r2sq - r1sq) / (2*d*r2), -1,1));
-  const area = r1sq*alpha + r2sq*beta - 0.5 * Math.sqrt(Math.max(0, (-d+r1+r2)*(d+r1-r2)*(d-r1+r2)*(d+r1+r2)));
-  return area;
-}
-
-/* limb darkening factor */
-function limbFactor(rFrac, u=0.6){
-  if (rFrac >= 1) return 0;
-  const mu = Math.sqrt(Math.max(0, 1 - rFrac*rFrac));
-  return 1 - u * (1 - mu);
-}
-
-/* ---------- Map physical -> canvas ---------- */
-function computeMapping(){
-  const sunDist_km = PHY.D_earth_sun * STATE.sunDistScale;
-  const moonDist_km = PHY.D_earth_moon * STATE.moonDistScale;
-  const alpha_sun = angularRadiusRad(PHY.R_sun, sunDist_km);
-  const alpha_moon = angularRadiusRad(PHY.R_moon * STATE.moonSizeScale, moonDist_km);
-  const canvasMin = Math.min(canvas.clientWidth, canvas.clientHeight);
-  const targetSunPx = canvasMin * 0.30;
-  const pxPerRad = targetSunPx / Math.max(1e-9, alpha_sun);
-  const sunPx = alpha_sun * pxPerRad;
-  const moonPx = alpha_moon * pxPerRad;
-  return { sunPx, moonPx, pxPerRad, sunDist_km, moonDist_km };
-}
-
-/* ---------- Sampling flux (limb-darkened) ---------- */
-function sampleFlux(sunPx, moonCx, moonCy, moonPx, samples=140){
-  const R = sunPx;
-  const N = Math.max(20, Math.min(420, samples));
-  const step = (2*R) / N;
-  let total=0, visible=0;
-  for (let i=0;i<N;i++){
-    const x = -R + (i+0.5)*step;
-    for (let j=0;j<N;j++){
-      const y = -R + (j+0.5)*step;
-      const r = Math.hypot(x,y);
-      if (r <= R){
-        const lf = limbFactor(r/R, 0.6);
-        total += lf;
-        const rx = x - moonCx, ry = y - moonCy;
-        if (Math.hypot(rx,ry) > moonPx) visible += lf;
+      // ensure UI consistency
+      if (mode === 'total') {
+        showRing = false;
+        ringToggle.textContent = `Show Ring of Fire: Off`;
       }
     }
-  }
-  return total <= 0 ? 1.0 : visible / total;
-}
 
-/* ---------- Draw primitives ---------- */
-function clearCanvas(){
-  ctx.clearRect(0,0,canvas.clientWidth, canvas.clientHeight);
-  ctx.fillStyle = '#fffdf8';
-  ctx.fillRect(0,0,canvas.clientWidth, canvas.clientHeight);
-}
+    annularModeBtn.addEventListener('click', () => setMode('annular'));
+    totalModeBtn.addEventListener('click', () => setMode('total'));
 
-/* draw Sun with radial rings for limb darkening */
-function drawSun(cx,cy,r){
-  const rings=28;
-  for (let i=rings;i>0;i--){
-    const rf = i/rings;
-    const br = limbFactor(rf,0.6);
-    const cr = Math.floor(255*(0.95*br + 0.05));
-    const cg = Math.floor(220*(0.9*br + 0.1));
-    const cb = Math.floor(80*(0.9*br + 0.1));
-    ctx.beginPath(); ctx.fillStyle = `rgb(${cr},${cg},${cb})`; ctx.arc(cx,cy,r*rf,0,Math.PI*2); ctx.fill();
-  }
-  const g = ctx.createRadialGradient(cx,cy,0,cx,cy,r*1.3);
-  g.addColorStop(0,'rgba(255,255,230,0.95)'); g.addColorStop(1,'rgba(255,220,80,0)');
-  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx,cy,r*1.2,0,Math.PI*2); ctx.fill();
-}
+    // Ring controls
+    const ringToggle = document.getElementById('ringToggle');
+    const autoPauseToggle = document.getElementById('autoPauseToggle');
+    let showRing = false;
+    let autoPause = false;
+    let ringAutoPaused = false; // true when auto-paused at ring so we don't repeatedly pause
 
-function drawMoon(cx,cy,r){
-  ctx.beginPath(); ctx.fillStyle = '#bfbfbf'; ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
-  ctx.save(); ctx.globalAlpha = 0.14; ctx.fillStyle = '#9f9f9f';
-  for (let i=0;i<8;i++){
-    const a = Math.random()*Math.PI*2;
-    const cr = r*(0.08+Math.random()*0.18);
-    const px = cx + Math.cos(a)*r*(0.25+Math.random()*0.6);
-    const py = cy + Math.sin(a)*r*(0.25+Math.random()*0.6);
-    ctx.beginPath(); ctx.arc(px,py,cr,0,Math.PI*2); ctx.fill();
-  }
-  ctx.restore();
-}
+    ringToggle.addEventListener('click', () => {
+      // ring only meaningful for annular mode
+      if (mode === 'total') return; // ignore
+      showRing = !showRing;
+      ringToggle.textContent = `Show Ring of Fire: ${showRing ? 'On' : 'Off'}`;
+    });
+    autoPauseToggle.addEventListener('click', () => {
+      autoPause = !autoPause;
+      autoPauseToggle.textContent = `Auto-Pause at Ring: ${autoPause ? 'On' : 'Off'}`;
+      if (!autoPause) ringAutoPaused = false;
+    });
 
-function drawEarth(cx,cy,r,tiltDeg,rotDeg){
-  const g = ctx.createRadialGradient(cx - r*0.25, cy - r*0.25, r*0.1, cx, cy, r);
-  g.addColorStop(0,'#cfeeff'); g.addColorStop(1,'#0b6fa0');
-  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle = 'rgba(8,45,68,0.14)';
-  ctx.beginPath(); ctx.ellipse(cx - r*0.12, cy - r*0.06, r*0.42, r*0.19, -0.2, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(cx + r*0.18, cy + r*0.12, r*0.28, r*0.14, 0.25, 0, Math.PI*2); ctx.fill();
-  // terminator
-  ctx.save(); ctx.translate(cx,cy); ctx.rotate(rotDeg*Math.PI/180);
-  ctx.beginPath(); ctx.fillStyle = 'rgba(0,0,0,0.24)'; ctx.ellipse(0,0,r, r*1.02, 0, Math.PI*0.5, Math.PI*1.5); ctx.fill();
-  ctx.restore();
-}
+    // Use devicePixelRatio for crisp drawing
+    function setSize() {
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      // main canvas
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      canvas.width = Math.round(window.innerWidth * dpr);
+      canvas.height = Math.round(window.innerHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // keep drawing coordinates in CSS pixels
 
-function drawUmbraPenumbra(cx,cy,cuUmbra,cuPenumbra){
-  ctx.beginPath(); ctx.fillStyle = 'rgba(245,180,80,0.08)'; ctx.arc(cx,cy,cuPenumbra,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.fillStyle = 'rgba(30,30,30,0.28)'; ctx.arc(cx,cy,cuUmbra,0,Math.PI*2); ctx.fill();
-}
+      // earth view canvas (fixed CSS size)
+      const cssW = 220, cssH = 220;
+      earthViewCanvas.style.width = cssW + 'px';
+      earthViewCanvas.style.height = cssH + 'px';
+      earthViewCanvas.width = Math.round(cssW * dpr);
+      earthViewCanvas.height = Math.round(cssH * dpr);
+      earthCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-/* effects */
-function drawDiamond(cx,cy,sunR,moonR,x,y,flux){
-  const sep = Math.hypot(x,y);
-  if (STATE.showDiamond && sep > Math.abs(sunR - moonR) - 6 && sep < Math.abs(sunR - moonR) + 6 && flux < 0.12){
-    const ang = Math.atan2(y,x);
-    const px = cx + Math.cos(ang)*(sunR - 4);
-    const py = cy + Math.sin(ang)*(sunR - 4);
-    ctx.save(); ctx.shadowBlur = 30; ctx.shadowColor = '#fff6a8';
-    ctx.fillStyle = 'rgba(255,255,240,0.98)'; ctx.beginPath(); ctx.arc(px,py,10,0,Math.PI*2); ctx.fill();
-    ctx.restore();
-  }
-}
-function drawAnnulus(cx,cy,sunR){
-  if (STATE.showRing){
-    ctx.save(); ctx.beginPath(); ctx.lineWidth = 8; ctx.strokeStyle = 'rgba(246,177,0,0.92)'; ctx.arc(cx,cy,sunR-4,0,Math.PI*2); ctx.stroke(); ctx.restore();
-  }
-}
-
-/* ---------- Compute + render ---------- */
-function computeDraw(){
-  resizeAll(); // ensure canvases are crisp
-  clearCanvas();
-  const W = canvas.clientWidth, H = canvas.clientHeight;
-  const cx = W/2, cy = H/2;
-  const map = computeMapping();
-  const sunR = map.sunPx, moonR = map.moonPx;
-  const sunDist_km = map.sunDist_km, moonDist_km = map.moonDist_km;
-
-  if (UI.mode.value === 'solar'){
-    // sun centered
-    drawSun(cx,cy,sunR);
-    // moon path across sun
-    const travel = 2.2 * (sunR + moonR);
-    const x = -travel/2 + travel * STATE.t;
-    const y = STATE.impact * (sunR + moonR);
-    const moonX = cx + x, moonY = cy + y;
-    drawMoon(moonX, moonY, moonR);
-    // compute overlap
-    const d = Math.hypot(x,y);
-    const A = circleOverlapArea(sunR, moonR, d);
-    const obsc = A / (Math.PI * sunR * sunR);
-    let flux = 1 - obsc;
-    if (STATE.limb){
-      flux = sampleFlux(sunR, x, y, moonR, 160);
+      regenerateStars(); // regenerate star positions to match size
     }
-    // umbra/penumbra at moon distance -> mapped into px with km->px via moonR / moon radius
-    const umbPen = umbraPenumbraAtDist(moonDist_km, sunDist_km);
-    const km2px = moonR / (PHY.R_moon * STATE.moonSizeScale);
-    const cuUmbra = umbPen.r_umbra * km2px;
-    const cuPenumbra = umbPen.r_penumbra * km2px;
-    if (STATE.guides) drawUmbraPenumbra(cx,cy,cuUmbra,cuPenumbra);
-    if (STATE.showDiamond) drawDiamond(cx,cy,sunR,moonR,x,y,flux);
-    if (STATE.showRing && moonR < sunR && Math.hypot(x,y) < sunR*0.12) drawAnnulus(cx,cy,sunR);
-    // push flux data
-    STATE.fluxSeries.push({t:STATE.t,flux});
-    // readout
-    ctx.fillStyle = '#222'; ctx.font = '13px Inter';
-    ctx.fillText(`Solar • Obscuration ${(obsc*100).toFixed(3)}% • Flux ${flux.toFixed(4)}`, 12, 18);
-  } else {
-    // lunar: Earth placed left-ish
-    const earthRpx = Math.max(48, sunR * 0.34);
-    const ex = cx - cx*0.26, ey = cy + cy*0.08;
-    drawSun(cx + cx*0.36, cy - cy*0.28, sunR*0.6);
-    // draw Earth with tilt and rotation (rot linked to STATE.t)
-    const rotDeg = (STATE.erotDeg * STATE.t * 360) % 360;
-    drawEarth(ex,ey,earthRpx, STATE.tiltDeg, rotDeg);
-    // umbra/penumbra radii at moon distance -> px
-    const umbPen = umbraPenumbraAtDist(map.moonDist_km, map.sunDist_km);
-    const km2px = moonR / (PHY.R_moon * STATE.moonSizeScale);
-    const cuUmbra = umbPen.r_umbra * km2px;
-    const cuPenumbra = umbPen.r_penumbra * km2px;
-    if (STATE.guides) drawUmbraPenumbra(ex,ey,cuUmbra,cuPenumbra);
-    // moon path across shadow
-    const travel = Math.max(220, cuPenumbra * 2.4);
-    const mx = ex - travel/2 + travel * STATE.t;
-    const my = ey - 200 + STATE.impact * 80;
-    drawMoon(mx,my,moonR);
-    const dcenter = Math.hypot(mx - ex, my - ey);
-    const Au = circleOverlapArea(moonR, cuUmbra, dcenter);
-    const Ap = circleOverlapArea(moonR, cuPenumbra, dcenter);
-    const penOnly = Math.max(0, Ap - Au);
-    const umbra_frac = Au / (Math.PI * moonR * moonR);
-    const pen_frac = penOnly / (Math.PI * moonR * moonR);
-    // shade moon by umbra
-    if (Au > 0){
-      ctx.beginPath(); ctx.fillStyle = `rgba(20,10,10,${0.85*umbra_frac})`; ctx.arc(mx,my,moonR,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.fillStyle = `rgba(120,30,10,${0.46*umbra_frac})`; ctx.arc(mx,my,moonR*0.92,0,Math.PI*2); ctx.fill();
-    } else if (penOnly > 0){
-      ctx.beginPath(); ctx.fillStyle = `rgba(0,0,0,${0.18*pen_frac})`; ctx.arc(mx,my,moonR,0,Math.PI*2); ctx.fill();
+
+    window.addEventListener('resize', setSize, { passive: true });
+
+    // ====== Stars ======
+    let stars = [];
+    function regenerateStars() {
+      const count = 200;
+      stars = [];
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          r: Math.random() * 1.6 + 0.2,
+          baseAlpha: Math.random() * 0.7 + 0.15,
+          twinkleSpeed: Math.random() * 0.02 + 0.005,
+          twinkleOffset: Math.random() * Math.PI * 2
+        });
+      }
     }
-    STATE.fracSeries.push({t:STATE.t, umbra:umbra_frac, pen:pen_frac});
-    ctx.fillStyle = '#222'; ctx.font = '13px Inter';
-    ctx.fillText(`Lunar • Umbra ${(umbra_frac*100).toFixed(3)}% • Penumbra ${(pen_frac*100).toFixed(3)}%`, 12, 18);
-  }
 
-  renderPlots();
-}
+    // initialize sizes + stars
+    setSize();
 
-/* ---------- Plots ---------- */
-function renderPlots(){
-  // flux
-  const W = fluxCanvas.clientWidth, H = fluxCanvas.clientHeight;
-  fluxCtx.clearRect(0,0,W,H); fluxCtx.fillStyle = '#fffdf4'; fluxCtx.fillRect(0,0,W,H);
-  fluxCtx.fillStyle = '#666'; fluxCtx.font = '12px Arial'; fluxCtx.fillText('Flux (normalized)', 8, 14);
-  if (STATE.fluxSeries.length > 1){
-    fluxCtx.beginPath(); fluxCtx.lineWidth = 2; fluxCtx.strokeStyle = '#f6b100';
-    const n = STATE.fluxSeries.length;
-    const t0 = STATE.fluxSeries[0].t, t1 = STATE.fluxSeries[n-1].t || 1;
-    const sx = t => 8 + ((t - t0) / Math.max(1e-9, t1 - t0)) * (W - 16);
-    const sy = f => 20 + (1 - f) * (H - 36);
-    fluxCtx.moveTo(sx(STATE.fluxSeries[0].t), sy(STATE.fluxSeries[0].flux));
-    for (let i=1;i<n;i++) fluxCtx.lineTo(sx(STATE.fluxSeries[i].t), sy(STATE.fluxSeries[i].flux));
-    fluxCtx.stroke();
-  } else {
-    fluxCtx.fillStyle = '#999'; fluxCtx.fillText('Run Solar mode to get light curve', 12, H/2);
-  }
-  // fractions
-  const W2 = fracCanvas.clientWidth, H2 = fracCanvas.clientHeight;
-  fracCtx.clearRect(0,0,W2,H2); fracCtx.fillStyle = '#fffdf4'; fracCtx.fillRect(0,0,W2,H2);
-  fracCtx.fillStyle = '#666'; fracCtx.font = '12px Arial'; fracCtx.fillText('Umbra (red) & Penumbra (orange)', 8, 14);
-  if (STATE.fracSeries.length > 1){
-    const n = STATE.fracSeries.length;
-    const t0 = STATE.fracSeries[0].t, t1 = STATE.fracSeries[n-1].t || 1;
-    const sx = t => 8 + ((t - t0) / Math.max(1e-9, t1 - t0)) * (W2 - 16);
-    const sy = v => 20 + (1 - v) * (H2 - 36);
-    fracCtx.beginPath(); fracCtx.lineWidth = 2; fracCtx.strokeStyle = '#c94a4a';
-    fracCtx.moveTo(sx(STATE.fracSeries[0].t), sy(STATE.fracSeries[0].umbra));
-    for (let i=1;i<n;i++) fracCtx.lineTo(sx(STATE.fracSeries[i].t), sy(STATE.fracSeries[i].umbra));
-    fracCtx.stroke();
-    fracCtx.beginPath(); fracCtx.lineWidth = 2; fracCtx.strokeStyle = '#f08c2f';
-    fracCtx.moveTo(sx(STATE.fracSeries[0].t), sy(STATE.fracSeries[0].pen));
-    for (let i=1;i<n;i++) fracCtx.lineTo(sx(STATE.fracSeries[i].t), sy(STATE.fracSeries[i].pen));
-    fracCtx.stroke();
-  } else {
-    fracCtx.fillStyle = '#999'; fracCtx.fillText('Run Lunar mode to compute shadows', 12, H2/2);
-  }
-}
+    // ====== Animation state ======
+    let time = 0;
+    let rafId = null;
 
-/* ---------- Animation ---------- */
-let lastTime = nowMs();
-function step(dt){
-  const inc = STATE.dtBase * STATE.speed * (dt*60);
-  STATE.t = clamp(STATE.t + inc, 0, 1);
-}
+    // ====== Main draw loop ======
+    function drawScene() {
+      if (!paused && !(autoPause && ringAutoPaused)) time += 0.01; // stop time if auto-paused
 
-function loop(ts){
-  if (!STATE.running) return;
-  const now = nowMs();
-  const dt = (now - lastTime) / 1000.0;
-  lastTime = now;
-  step(dt);
-  computeDraw();
-  if (STATE.t >= 1){ STATE.running = false; UI.status.textContent='Status: Finished'; return; }
-  requestAnimationFrame(loop);
-}
+      // clear
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-/* ---------- Controls: reset/presets/export ---------- */
-function resetData(){ STATE.fluxSeries.length = 0; STATE.fracSeries.length = 0; }
-function resetAll(){ STATE.running=false; STATE.t=0; resetData(); computeDraw(); UI.status.textContent='Status: Ready'; }
-function applyPreset(name){
-  if (name==='total'){ UI.mode.value='solar'; STATE.moonDistScale=1.02; STATE.moonSizeScale=1.0; STATE.sunDistScale=1.0; STATE.speed=1; UI.speed.value=1; }
-  if (name==='annular'){ UI.mode.value='solar'; STATE.moonDistScale=1.25; STATE.moonSizeScale=0.92; STATE.sunDistScale=1.005; STATE.speed=1; UI.speed.value=1; }
-  if (name==='lunar'){ UI.mode.value='lunar'; STATE.moonDistScale=1.0; STATE.moonSizeScale=1.0; STATE.sunDistScale=1.0; STATE.speed=0.8; UI.speed.value=0.8; }
-  updateUI(); resetAll();
-}
-function exportCSV(){
-  if (UI.mode.value === 'solar'){
-    if (STATE.fluxSeries.length===0){ UI.status.textContent='No flux data'; return; }
-    let csv = 't,flux\n';
-    STATE.fluxSeries.forEach(p=> csv+=`${p.t.toFixed(6)},${p.flux.toFixed(6)}\n`);
-    const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download='flux.csv'; a.click(); URL.revokeObjectURL(url);
-    UI.status.textContent='CSV exported';
-  } else {
-    if (STATE.fracSeries.length===0){ UI.status.textContent='No fraction data'; return; }
-    let csv = 't,umbra,pen\n';
-    STATE.fracSeries.forEach(p=> csv+=`${p.t.toFixed(6)},${p.umbra.toFixed(6)},${p.pen.toFixed(6)}\n`);
-    const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href = url; a.download='umbra.csv'; a.click(); URL.revokeObjectURL(url);
-    UI.status.textContent='CSV exported';
-  }
-}
+      // center lines
+      const centerY = window.innerHeight / 2;
+      const sunX = window.innerWidth * 0.8;
+      const earthX = window.innerWidth * 0.2;
+      const moonOrbitRadius = (sunX - earthX) / 2;
+      const earthOrbitRadius = (sunX - earthX);
 
-/* ---------- Draw one frame helper ---------- */
-function drawOnce(){ lastTime = nowMs(); computeDraw(); }
+      // stars
+      ctx.save();
+      stars.forEach((s) => {
+        s.a = s.baseAlpha + Math.sin(time * (1 + s.twinkleSpeed * 10) + s.twinkleOffset) * 0.25;
+        const alpha = Math.max(0.05, Math.min(1, s.a));
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      ctx.restore();
 
-/* ---------- Initialization ---------- */
-function init(){
-  updateUI();
-  resetAll();
-  // keyboard shortcuts: space => start/pause, r => reset
-  window.addEventListener('keydown', (e)=>{
-    if (e.code === 'Space'){ e.preventDefault(); STATE.running = !STATE.running; if (STATE.running){ lastTime=nowMs(); requestAnimationFrame(loop); UI.status.textContent='Status: Running'; } else UI.status.textContent='Status: Paused'; }
-    if (e.key === 'r' || e.key === 'R'){ resetAll(); }
-  });
-  // make preset buttons functional
-  document.querySelectorAll('.preset').forEach(b=> b.addEventListener('click', ()=> applyPreset(b.dataset.preset)));
-}
-init();
+      // moon position
+      // if we auto-paused at the ring, freeze moon by not updating time further
+      const moonX = earthX + moonOrbitRadius * Math.cos(time);
+      const moonY = centerY + 80 * Math.sin(time);
 
-/* expose state for debugging */
-window.ECLIPSE_FINAL = {STATE, PHY, computeDraw, resetAll, exportCSV};
+      // orbit trails (drawn lightly)
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      // moon orbit (elliptical-like)
+      for (let a = 0; a < Math.PI * 2; a += 0.02) {
+        const x = earthX + moonOrbitRadius * Math.cos(a);
+        const y = centerY + 80 * Math.sin(a);
+        if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
 
-</script>
+      // earth orbit curve
+      ctx.strokeStyle = 'rgba(100,150,255,0.28)';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      for (let a = 0; a < Math.PI * 2; a += 0.02) {
+        const x = sunX - earthOrbitRadius * Math.cos(a);
+        const y = centerY + earthOrbitRadius * 0.08 * Math.sin(a);
+        if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+
+      // Sun (radial gradient)
+      const sunRadius = 110;
+      const sunGradient = ctx.createRadialGradient(sunX, centerY, 40, sunX, centerY, 220);
+      sunGradient.addColorStop(0, '#fff7b0');
+      sunGradient.addColorStop(0.35, '#ffd54a');
+      sunGradient.addColorStop(0.7, 'rgba(255,180,60,0.35)');
+      sunGradient.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.beginPath();
+      ctx.arc(sunX, centerY, sunRadius, 0, Math.PI * 2);
+      ctx.fillStyle = sunGradient;
+      ctx.fill();
+
+      // Sun core highlight (brighter center for light source effect)
+      const sunHighlight = ctx.createRadialGradient(sunX - 30, centerY - 30, 0, sunX, centerY, sunRadius * 0.4);
+      sunHighlight.addColorStop(0, 'rgba(255,255,255,0.8)');
+      sunHighlight.addColorStop(0.4, 'rgba(255,255,255,0.2)');
+      sunHighlight.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = sunHighlight;
+      ctx.beginPath();
+      ctx.arc(sunX, centerY, sunRadius * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // decide if moon is between earth and sun (main view)
+      const isBetween = (moonX > earthX && moonX < sunX);
+      const alignment = Math.abs(moonY - centerY);
+
+      // set moon apparent radius depending on mode
+      const moonRadius = 30; // same for both modes now (user request)
+      const centeredness = Math.abs((moonX - earthX) / (sunX - earthX) - 0.5); // 0 when perfectly between
+      const centerThreshold = 0.03; // how strictly centered to consider the annular moment
+      const verticalThreshold = 22; // vertical misalignment allowed
+
+      const ringMoment = (mode === 'annular') && isBetween && alignment < verticalThreshold && centeredness < centerThreshold;
+      const totalMoment = (mode === 'total') && isBetween && alignment < verticalThreshold && centeredness < centerThreshold;
+
+      // if ring auto-pause is enabled and moment occurs, pause at that exact time
+      if (autoPause && !ringAutoPaused && ((mode === 'annular' && ringMoment) || (mode === 'total' && totalMoment))) {
+        paused = true; // freeze animation
+        ringAutoPaused = true;
+        pauseButton.textContent = 'Resume';
+      }
+
+      if (isBetween && alignment < 22) {
+        drawShadowRegions(moonX, moonY, earthX, centerY, moonRadius, sunX, centerY);
+      }
+      // Earth
+      const earthGradient = ctx.createRadialGradient(earthX, centerY, 8, earthX, centerY, 50);
+      earthGradient.addColorStop(0, '#003366');
+      earthGradient.addColorStop(1, '#001220');
+      ctx.beginPath();
+      ctx.arc(earthX, centerY, 50, 0, Math.PI * 2);
+      ctx.fillStyle = earthGradient;
+      ctx.fill();
+
+      // Earth lit side (facing sun) - brighter
+      const lightDir = Math.atan2(centerY - centerY, sunX - earthX); // angle to sun
+      const litGradient = ctx.createRadialGradient(
+        earthX + Math.cos(lightDir) * 15, 
+        centerY + Math.sin(lightDir) * 15, 
+        0, 
+        earthX, 
+        centerY, 
+        50
+      );
+      litGradient.addColorStop(0, 'rgba(100,180,255,0.4)');
+      litGradient.addColorStop(0.6, 'rgba(100,180,255,0.1)');
+      litGradient.addColorStop(1, 'rgba(100,180,255,0)');
+      ctx.fillStyle = litGradient;
+      ctx.beginPath();
+      ctx.arc(earthX, centerY, 50, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Earth shadow side (away from sun) - darker gradient
+      const shadowGradient = ctx.createRadialGradient(
+        earthX - Math.cos(lightDir) * 20, 
+        centerY - Math.sin(lightDir) * 20, 
+        0, 
+        earthX, 
+        centerY, 
+        50
+      );
+      shadowGradient.addColorStop(0, 'rgba(0,20,60,0.6)');
+      shadowGradient.addColorStop(1, 'rgba(0,10,30,0)');
+      ctx.fillStyle = shadowGradient;
+      ctx.beginPath();
+      ctx.arc(earthX, centerY, 50, 0, Math.PI * 2);
+      ctx.fill();
+
+      // land
+      ctx.fillStyle = 'rgba(0,150,0,0.85)';
+      ctx.beginPath();
+      ctx.moveTo(earthX - 25, centerY - 15);
+      ctx.bezierCurveTo(earthX - 10, centerY - 35, earthX + 15, centerY - 30, earthX + 5, centerY - 5);
+      ctx.bezierCurveTo(earthX, centerY + 5, earthX - 20, centerY, earthX - 25, centerY - 15);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(earthX + 15, centerY + 10);
+      ctx.bezierCurveTo(earthX + 30, centerY, earthX + 40, centerY + 25, earthX + 25, centerY + 35);
+      ctx.bezierCurveTo(earthX + 10, centerY + 25, earthX + 5, centerY + 15, earthX + 15, centerY + 10);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(earthX - 15, centerY + 25);
+      ctx.bezierCurveTo(earthX - 10, centerY + 20, earthX, centerY + 30, earthX - 5, centerY + 35);
+      ctx.bezierCurveTo(earthX - 10, centerY + 35, earthX - 20, centerY + 30, earthX - 15, centerY + 25);
+      ctx.closePath();
+      ctx.fill();
+
+      // glow around earth
+      const glow = ctx.createRadialGradient(earthX, centerY, 50, earthX, centerY, 90);
+      glow.addColorStop(0, 'rgba(255,255,255,0.12)');
+      glow.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(earthX, centerY, 80, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Moon
+      ctx.beginPath();
+      ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+      ctx.fillStyle = 'gray';
+      ctx.fill();
+
+      // Moon lighting: lit side (facing sun)
+      const moonLightDir = Math.atan2(moonY - centerY, sunX - moonX);
+      const moonLitGradient = ctx.createRadialGradient(
+        moonX + Math.cos(moonLightDir) * 8,
+        moonY + Math.sin(moonLightDir) * 8,
+        0,
+        moonX,
+        moonY,
+        moonRadius
+      );
+      moonLitGradient.addColorStop(0, 'rgba(220,220,220,0.8)');
+      moonLitGradient.addColorStop(0.5, 'rgba(200,200,200,0.3)');
+      moonLitGradient.addColorStop(1, 'rgba(150,150,150,0)');
+      ctx.fillStyle = moonLitGradient;
+      ctx.beginPath();
+      ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Moon shadow side (away from sun)
+      const moonShadowGradient = ctx.createRadialGradient(
+        moonX - Math.cos(moonLightDir) * 10,
+        moonY - Math.sin(moonLightDir) * 10,
+        0,
+        moonX,
+        moonY,
+        moonRadius
+      );
+      moonShadowGradient.addColorStop(0, 'rgba(20,20,30,0.8)');
+      moonShadowGradient.addColorStop(1, 'rgba(20,20,30,0)');
+      ctx.fillStyle = moonShadowGradient;
+      ctx.beginPath();
+      ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // inset earth view
+      drawEarthView(moonX, moonY, earthX, centerY, sunX, sunRadius, moonRadius, ringMoment || totalMoment);
+
+      rafId = requestAnimationFrame(drawScene);
+    }
+
+    // ====== Shadow rendering (umbra + penumbra) ======
+    function drawShadowRegions(mx, my, ex, ey, moonRadius, sunX, centerY) {
+      // Shadow direction: away from Sun (light source)
+      const sunToMoonX = mx - sunX;
+      const sunToMoonY = my - centerY;
+      const dist = Math.hypot(sunToMoonX, sunToMoonY) || 1;
+      const ux = sunToMoonX / dist;  // unit vector pointing away from sun
+      const uy = sunToMoonY / dist;
+      // perpendicular to shadow direction
+      const px = -uy;
+      const py = ux;
+
+      // spreads control shape width at moon (increased for visibility)
+      const umbraSpread = 60;
+      const penumbraSpread = 160;
+      
+      // PENUMBRA RAYS: parallel rays (NOT crisscrossing) - both on same side
+      // Left penumbra ray: Sun LEFT edge → Moon LEFT edge (parallel)
+      const penLeftSunX = sunX - px * penumbraSpread * 0.5;  // LEFT side of sun
+      const penLeftSunY = centerY - py * penumbraSpread * 0.5;
+      const penLeftMoonX = mx - px * penumbraSpread * 0.5;   // LEFT side of moon
+      const penLeftMoonY = my - py * penumbraSpread * 0.5;
+      const penLeftEndX = ex - px * penumbraSpread * 0.3;
+      const penLeftEndY = ey - py * penumbraSpread * 0.3;
+      
+      // Right penumbra ray: Sun RIGHT edge → Moon RIGHT edge (parallel, same side)
+      const penRightSunX = sunX + px * penumbraSpread * 0.5;  // RIGHT side of sun
+      const penRightSunY = centerY + py * penumbraSpread * 0.5;
+      const penRightMoonX = mx + px * penumbraSpread * 0.5;   // RIGHT side of moon
+      const penRightMoonY = my + py * penumbraSpread * 0.5;
+      const penRightEndX = ex + px * penumbraSpread * 0.3;
+      const penRightEndY = ey + py * penumbraSpread * 0.3;
+      
+      // UMBRA RAYS: crisscrossing from opposite Sun edges to opposite Moon edges (narrower)
+      // Left umbra ray: Sun RIGHT edge → Moon LEFT edge
+      const umbLeftSunX = sunX + px * umbraSpread * 0.5;      // RIGHT side of sun
+      const umbLeftSunY = centerY + py * umbraSpread * 0.5;
+      const umbLeftMoonX = mx - px * umbraSpread * 0.5;       // LEFT side of moon
+      const umbLeftMoonY = my - py * umbraSpread * 0.5;
+      const umbLeftEndX = ex - px * umbraSpread * 0.25;
+      const umbLeftEndY = ey - py * umbraSpread * 0.25;
+      
+      // Right umbra ray: Sun LEFT edge → Moon RIGHT edge (crisscross)
+      const umbRightSunX = sunX - px * umbraSpread * 0.5;     // LEFT side of sun
+      const umbRightSunY = centerY - py * umbraSpread * 0.5;
+      const umbRightMoonX = mx + px * umbraSpread * 0.5;      // RIGHT side of moon
+      const umbRightMoonY = my + py * umbraSpread * 0.5;
+      const umbRightEndX = ex + px * umbraSpread * 0.25;
+      const umbRightEndY = ey + py * umbraSpread * 0.25;
+
+      ctx.save();
+
+      // Draw penumbra cone as filled region
+      const penLeftStartX = mx - px * penumbraSpread * 0.5;
+      const penLeftStartY = my - py * penumbraSpread * 0.5;
+      const penRightStartX = mx + px * penumbraSpread * 0.5;
+      const penRightStartY = my + py * penumbraSpread * 0.5;
+
+      // gradient across the penumbra width - more visible
+      const gradient = ctx.createLinearGradient(penLeftStartX, penLeftStartY, penRightStartX, penRightStartY);
+      gradient.addColorStop(0, 'rgba(0,0,0,0.0)');
+      gradient.addColorStop(0.5, 'rgba(0,0,0,0.35)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0.0)');
+
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.moveTo(penLeftStartX, penLeftStartY);
+      ctx.lineTo(penRightStartX, penRightStartY);
+      ctx.lineTo(penRightEndX, penRightEndY);
+      ctx.lineTo(penLeftEndX, penLeftEndY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Draw umbra cone as filled region
+      const umbLeftStartX = mx - px * umbraSpread * 0.5;
+      const umbLeftStartY = my - py * umbraSpread * 0.5;
+      const umbRightStartX = mx + px * umbraSpread * 0.5;
+      const umbRightStartY = my + py * umbraSpread * 0.5;
+
+      // darker center with gradient for visibility
+      const umbraGradient = ctx.createLinearGradient(umbLeftStartX, umbLeftStartY, umbRightStartX, umbRightStartY);
+      umbraGradient.addColorStop(0, 'rgba(0,0,0,0.2)');
+      umbraGradient.addColorStop(0.5, 'rgba(0,0,0,0.75)');
+      umbraGradient.addColorStop(1, 'rgba(0,0,0,0.2)');
+      
+      ctx.fillStyle = umbraGradient;
+      ctx.beginPath();
+      ctx.moveTo(umbLeftStartX, umbLeftStartY);
+      ctx.lineTo(umbRightStartX, umbRightStartY);
+      ctx.lineTo(umbRightEndX, umbRightEndY);
+      ctx.lineTo(umbLeftEndX, umbLeftEndY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Draw HIDDEN penumbra rays (Sun to Moon) - very faint dashed
+      ctx.strokeStyle = 'rgba(200,200,200,0.15)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]); // dashed line for hidden rays
+      
+      // Left penumbra hidden ray (sun to moon)
+      ctx.beginPath();
+      ctx.moveTo(penLeftSunX, penLeftSunY);
+      ctx.lineTo(penLeftMoonX, penLeftMoonY);
+      ctx.stroke();
+      
+      // Right penumbra hidden ray (sun to moon)
+      ctx.beginPath();
+      ctx.moveTo(penRightSunX, penRightSunY);
+      ctx.lineTo(penRightMoonX, penRightMoonY);
+      ctx.stroke();
+      
+      // Draw VISIBLE penumbra rays (Moon to Earth) - grey dashed
+      ctx.strokeStyle = 'rgba(200,200,200,0.5)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      
+      // Left penumbra visible ray (moon to earth)
+      ctx.beginPath();
+      ctx.moveTo(penLeftMoonX, penLeftMoonY);
+      ctx.lineTo(penLeftEndX, penLeftEndY);
+      ctx.stroke();
+      
+      // Right penumbra visible ray (moon to earth)
+      ctx.beginPath();
+      ctx.moveTo(penRightMoonX, penRightMoonY);
+      ctx.lineTo(penRightEndX, penRightEndY);
+      ctx.stroke();
+      
+      // Draw HIDDEN umbra rays (Sun to Moon) - very faint dashed
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([5, 5]); // dashed line for hidden rays
+      
+      // Left umbra hidden ray (sun to moon)
+      ctx.beginPath();
+      ctx.moveTo(umbLeftSunX, umbLeftSunY);
+      ctx.lineTo(umbLeftMoonX, umbLeftMoonY);
+      ctx.stroke();
+      
+      // Right umbra hidden ray (sun to moon)
+      ctx.beginPath();
+      ctx.moveTo(umbRightSunX, umbRightSunY);
+      ctx.lineTo(umbRightMoonX, umbRightMoonY);
+      ctx.stroke();
+      
+      // Draw VISIBLE umbra rays (Moon to Earth) - white solid
+      ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([]); // solid line for visible rays
+      
+      // Left umbra visible ray (moon to earth)
+      ctx.beginPath();
+      ctx.moveTo(umbLeftMoonX, umbLeftMoonY);
+      ctx.lineTo(umbLeftEndX, umbLeftEndY);
+      ctx.stroke();
+      
+      // Right umbra visible ray (moon to earth)
+      ctx.beginPath();
+      ctx.moveTo(umbRightMoonX, umbRightMoonY);
+      ctx.lineTo(umbRightEndX, umbRightEndY);
+      ctx.stroke();
+      
+      ctx.setLineDash([]); // reset line dash
+
+      ctx.restore();
+    }
+
+    // ====== Earth inset view (what an observer sees) ======
+    function drawEarthView(moonX, moonY, earthX, centerY, sunX, sunRadius, moonRadius, ringMoment) {
+      // css coordinates within earthViewCanvas: 0..220
+      earthCtx.clearRect(0, 0, 220, 220);
+      earthCtx.save();
+
+      // center at (110,110) and rotate for stylized view
+      earthCtx.translate(110, 110);
+      earthCtx.rotate(-Math.PI / 2);
+      earthCtx.translate(-110, -110);
+
+      // sun disc in inset
+      const sunInsetRadius = 65;
+      const sunGrad = earthCtx.createRadialGradient(110, 110, 30, 110, 110, 70);
+      sunGrad.addColorStop(0, '#ffffcc');
+      sunGrad.addColorStop(1, '#ffaa00');
+      earthCtx.beginPath();
+      earthCtx.arc(110, 110, sunInsetRadius, 0, Math.PI * 2);
+      earthCtx.fillStyle = sunGrad;
+      earthCtx.fill();
+
+      const isBetween = (moonX < sunX && moonX > earthX);
+      const alignment = Math.abs(moonY - centerY);
+
+      if (isBetween && alignment < 110) {
+        // map moon position proportionally into inset (approx)
+        const relX = ((moonX - earthX) / (sunX - earthX)) * 220 - 110;
+        const relY = ((moonY - centerY) / (window.innerHeight * 0.35)) * 220; // scaled
+
+        // default inset moon radius and adjustments per mode
+        let moonInsetRadius = (mode === 'total') ? sunInsetRadius + 6 : 60; // total: slightly larger so it fully covers
+        const ringThickness = 6; // how thin the visible sun ring is when annular
+
+        let moonInsetX = 110 + relX;
+        let moonInsetY = 110 + relY;
+
+        // when showing ring and we are in the annular/centered moment, shrink moon to just reveal a thin ring
+        if (mode === 'annular' && showRing && ringMoment) {
+          moonInsetRadius = Math.max(4, sunInsetRadius - ringThickness);
+          // snap to center for symmetrical ring
+          moonInsetX = 110; moonInsetY = 110;
+        }
+
+        // for total mode snap to center at total moment for symmetry
+        if (mode === 'total' && ringMoment) {
+          moonInsetRadius = sunInsetRadius + 6;
+          moonInsetX = 110; moonInsetY = 110;
+        }
+
+        // draw moon silhouette (bigger by default)
+        earthCtx.beginPath();
+        earthCtx.arc(moonInsetX, moonInsetY, moonInsetRadius, 0, Math.PI * 2);
+        // use fully opaque black to prevent any light bleed-through
+        earthCtx.globalCompositeOperation = 'source-over'; // reset to normal blend
+        earthCtx.fillStyle = 'rgba(0,0,0,1.0)';
+        earthCtx.fill();
+
+        // annular ring drawing
+        if (mode === 'annular' && showRing && ringMoment) {
+          const glowOuter = moonInsetRadius + 8;
+          const glow = earthCtx.createRadialGradient(moonInsetX, moonInsetY, moonInsetRadius + 2, moonInsetX, moonInsetY, glowOuter);
+          glow.addColorStop(0, 'rgba(255,240,180,0.95)');
+          glow.addColorStop(0.15, 'rgba(255,200,80,0.65)');
+          glow.addColorStop(0.35, 'rgba(255,160,40,0.25)');
+          glow.addColorStop(1, 'rgba(255,160,40,0)');
+          earthCtx.globalCompositeOperation = 'lighter';
+          earthCtx.fillStyle = glow;
+          earthCtx.beginPath();
+          earthCtx.arc(moonInsetX, moonInsetY, glowOuter, 0, Math.PI * 2);
+          earthCtx.fill();
+          earthCtx.globalCompositeOperation = 'source-over';
+
+          // redraw moon on top to ensure it stays opaque
+          earthCtx.beginPath();
+          earthCtx.arc(moonInsetX, moonInsetY, moonInsetRadius, 0, Math.PI * 2);
+          earthCtx.fillStyle = 'rgba(0,0,0,1.0)';
+          earthCtx.fill();
+
+          // subtle bright stroke to emphasize the thin ring
+          earthCtx.beginPath();
+          earthCtx.lineWidth = 2;
+          earthCtx.strokeStyle = 'rgba(255,230,160,0.95)';
+          earthCtx.arc(moonInsetX, moonInsetY, moonInsetRadius + (ringThickness/2), 0, Math.PI * 2);
+          earthCtx.stroke();
+        } else if (mode === 'total' && ringMoment) {
+          // totality corona: small bright corona glow when total and atMoment
+          const corona = earthCtx.createRadialGradient(110, 110, moonInsetRadius, 110, 110, 100);
+          corona.addColorStop(0, 'rgba(255,255,255,0.18)');
+          corona.addColorStop(1, 'rgba(255,255,255,0)');
+          earthCtx.fillStyle = corona;
+          earthCtx.fillRect(0, 0, 220, 220);
+
+          // redraw moon on top to ensure it stays opaque after corona
+          earthCtx.beginPath();
+          earthCtx.arc(moonInsetX, moonInsetY, moonInsetRadius, 0, Math.PI * 2);
+          earthCtx.fillStyle = 'rgba(0,0,0,1.0)';
+          earthCtx.fill();
+
+          // draw a subtle bright thin outer halo representing solar corona peeking beyond lunar limb
+          earthCtx.beginPath();
+          earthCtx.lineWidth = 3;
+          earthCtx.strokeStyle = 'rgba(255,240,220,0.9)';
+          earthCtx.arc(110, 110, moonInsetRadius + 4, 0, Math.PI * 2);
+          earthCtx.stroke();
+
+          // Diamond ring: bright sparkling point on the lunar limb
+          const diamondRadius = 5;
+          const diamondX = 110 + moonInsetRadius + 4; // on the right limb
+          const diamondY = 110;
+
+          // bright core
+          const dGrad = earthCtx.createRadialGradient(diamondX, diamondY, 0, diamondX, diamondY, diamondRadius * 3);
+          dGrad.addColorStop(0, 'rgba(255,255,255,1)');
+          dGrad.addColorStop(0.15, 'rgba(255,245,220,0.95)');
+          dGrad.addColorStop(0.4, 'rgba(255,200,120,0.5)');
+          dGrad.addColorStop(1, 'rgba(255,160,40,0)');
+          earthCtx.globalCompositeOperation = 'lighter';
+          earthCtx.fillStyle = dGrad;
+          earthCtx.beginPath();
+          earthCtx.arc(diamondX, diamondY, diamondRadius * 3, 0, Math.PI * 2);
+          earthCtx.fill();
+
+          // small core
+          earthCtx.beginPath();
+          earthCtx.fillStyle = 'rgba(255,255,255,0.98)';
+          earthCtx.arc(diamondX, diamondY, diamondRadius, 0, Math.PI * 2);
+          earthCtx.fill();
+
+          // sparkle cross
+          earthCtx.lineWidth = 2;
+          earthCtx.strokeStyle = 'rgba(255,255,255,0.95)';
+          earthCtx.beginPath();
+          earthCtx.moveTo(diamondX - 12, diamondY);
+          earthCtx.lineTo(diamondX + 12, diamondY);
+          earthCtx.moveTo(diamondX, diamondY - 12);
+          earthCtx.lineTo(diamondX, diamondY + 12);
+          earthCtx.stroke();
+
+          // diagonal glints
+          earthCtx.lineWidth = 1.2;
+          earthCtx.beginPath();
+          earthCtx.moveTo(diamondX - 9, diamondY - 9);
+          earthCtx.lineTo(diamondX + 9, diamondY + 9);
+          earthCtx.moveTo(diamondX - 9, diamondY + 9);
+          earthCtx.lineTo(diamondX + 9, diamondY - 9);
+          earthCtx.stroke();
+
+          earthCtx.globalCompositeOperation = 'source-over';
+        } else {
+          // non-annular small corona effect when near center
+          const overlap = Math.max(0, 1 - Math.abs(relX) / 110);
+          const darkness = Math.min(0.92, overlap * 0.92);
+          if (Math.abs(relX) < 12 && alignment < 50) {
+            const corona = earthCtx.createRadialGradient(110, 110, 60, 110, 110, 95);
+            corona.addColorStop(0, 'rgba(255,255,255,0.14)');
+            corona.addColorStop(1, 'rgba(255,255,255,0)');
+            earthCtx.fillStyle = corona;
+            earthCtx.fillRect(0, 0, 220, 220);
+
+            // redraw moon on top to ensure it stays opaque
+            earthCtx.beginPath();
+            earthCtx.arc(moonInsetX, moonInsetY, moonInsetRadius, 0, Math.PI * 2);
+            earthCtx.fillStyle = 'rgba(0,0,0,1.0)';
+            earthCtx.fill();
+          }
+        }
+      }
+
+      earthCtx.restore();
+    }
+
+    // start
+    drawScene();
+
+  </script>
 </body>
 </html>
